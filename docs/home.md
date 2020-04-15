@@ -1,4 +1,8 @@
 # Release Note
+## 2020-04-10
+\- function added \-
+* 回復原廠設定功能 Help -> Restore
+
 ## 2020-03-10
 \- function added \-
 * T20, F2T12 10G<->1G 切換功能
