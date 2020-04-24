@@ -2,8 +2,8 @@
 ## 2020-04-20
 \- function added \-
 * 新增 ssl.ja3_digest 過濾條件，可過濾 ssl ja3 hash 值
-* 新增重複撥放 pcap 檔案功能
-* 新增 Traffic Generator 功能可產生IP與Port資訊，並製造10 Gbps以上的線速流量
+* 新增重複撥放 pcap 檔案功能 (\<input type="replayPcap"\> tag)
+* 新增 Traffic Generator 功能可產生IP與Port資訊，並製造10 Gbps以上的線速流量 (\<input type="traffic-gen"\> tag)
 * 新增 guest 帳號，登入後沒有設定權限，只有觀看權限
 * 前三項功能都透過xml設定，語法請參考 https://packetx.github.io/gml
 
