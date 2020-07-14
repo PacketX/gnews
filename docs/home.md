@@ -1,4 +1,16 @@
 # Release Note
+## 2020-07-12
+\- bug fixed \-
+* Heartbeat 設定頁面的 Record ID 改由0開始以符合xml設定之代號
+
+\- function added \-
+* 新增 arp 相關filter 
+  * arp
+  * arp.request
+  * arp.reply
+  * arp.request.target.ip
+* 新增 arp reply target mac output，可搭配 arp.request.target.ip filter 過濾回應指定 mac
+
 ## 2020-04-20
 \- function added \-
 * 新增 ssl.ja3_digest 過濾條件，可過濾 ssl ja3 hash 值
