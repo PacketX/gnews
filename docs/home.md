@@ -1,4 +1,12 @@
 # Release Note
+## 2020-09-17
+\- performance tuning \-
+* 提升VPort(T16 V0-V16)複製多份輸出以及複製多份自定義輸出(\<output\>)之效能
+
+\- function added \-
+* 新增 dns response IPv4 output，可搭配 dns.qry.name filter 過濾回應指定 IPv4
+* 新增 snapshot 功能，可短暫側錄流量儲存成pcap檔案
+
 ## 2020-07-12
 \- bug fixed \-
 * Heartbeat 設定頁面的 Record ID 改由0開始以符合xml設定之代號
