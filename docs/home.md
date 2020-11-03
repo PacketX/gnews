@@ -11,7 +11,7 @@
 
 ## 2020-09-17
 \- performance tuning \-
-* 提升VPort(T16 V0-V16)複製多份輸出以及複製多份自定義輸出(\<output\>)之效能
+* 提升VPort(T16 V0-V15)複製多份輸出以及複製多份自定義輸出(\<output\>)之效能
 
 \- function added \-
 * 新增 dns response IPv4 output，可搭配 dns.qry.name filter 過濾回應指定 IPv4
