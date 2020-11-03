@@ -3,7 +3,7 @@
 \- function added \-
 * 新增 VPort 功能設定，可搭配switch設備vlan tagging+trunk port進到設備，以擴充可使用之實體介面數量
 * 新增 ssl.server_name, ssl.server_name_public_suffix filter支援，過濾ssl憑證裡面的server name欄位
-* 新增 system syslog 支援，包含網頁登入登出、修改密碼、設定以及xml task送出等紀錄
+* 新增 system common syslog 支援，包含網頁登入登出、修改密碼、設定以及xml task送出等紀錄
 * 新增 filter 筆數統計，包含xml task裡面的filter以及隱藏式黑名單filter的筆數
 * 新增時區切換，目前支援 Taipei 以及 None 選項
 * 新增IP過濾的同時如遇到有IP層以上的Tunnel，也比對Tunnel外層的IP
