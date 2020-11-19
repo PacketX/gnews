@@ -5,4 +5,4 @@
 
 ## G8
 ### Max \<find\> count in \<filter\>
-- TODO
+- IPv4 address: 2000000
