@@ -1,4 +1,10 @@
 # Release Note
+## 2021-02-09
+\- function added \-
+* 新增於 Flow 頁面顯示 inpps, outpps (in/out packets per second) 流量
+* 新增 dns.qry.type, dns.count.add_rr filter find support
+* 新增 1 == 1 filter find 語法支援"一定會"或"一定不會"過濾到的條件，可運用在自動產生的黑名單過濾條件中以預防黑名單出現0筆的情況
+
 ## 2020-11-03
 \- function added \-
 * 新增 VPort 功能設定，可搭配switch設備vlan tagging+trunk port進到設備，以擴充可使用之實體介面數量
