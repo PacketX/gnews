@@ -3,6 +3,11 @@
 ### Max \<find\> count in \<filter\>
 - IPv4 address: 10000000
 
+### Max IPv4 flow table size 100,000,000
+flowCacheBaseSize: 6250000 (6250000x16=100,000,000)
+
+### Max IPv6 flow table size
+
 ## G8
 ### Max \<find\> count in \<filter\>
 - IPv4 address: 2000000
