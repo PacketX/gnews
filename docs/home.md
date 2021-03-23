@@ -1,4 +1,25 @@
 # Release Note
+## 2021-03-22
+\- function added \-
+* 新增 dns.qry.name_public_suffix 過濾功能
+```xml
+<filter id="10004" sessionBase="no">
+      <or>
+        <find name="dns.qry.name_public_suffix" relation="==" content="*.facebook.com" />
+        <find name="dns.qry.name_public_suffix" relation="==" content="*.google.com" />
+      </or>
+</filter>
+```
+* 新增 SNMP Read Community 設定
+* 新增 input packet drop syslog
+  * Configuration -> Syslog -> Add New Target -> type:system -> subtype:alert_dropped_packets
+  * type=3(system) subtype=0(input packet drop)
+```
+Mar 23 14:55:16 192.168.1.124 datetime=1970-01-01 03:40:43,type=3,subtype=0,interface=P1,packets=28,Mbps=150.63,Pps=22295,flows=49493/2097152,v6flows=261003/262144,cpu_load_average=13.28;4.47;3.84,mem_usage=519892/2060344
+```
+* (MEC) 新增 MEC Template
+* (MEC) 新增 S1AP Table
+
 ## 2021-02-09
 \- function added \-
 * 新增於 Flow 頁面顯示 inpps, outpps (in/out packets per second) 流量
