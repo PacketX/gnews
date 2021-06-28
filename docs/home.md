@@ -2,8 +2,8 @@
 ## 2021-06-28
 \- function added \-
 * 新增 ftp 過濾功能
-  * 包含所有 tcp 20/21 port 以及 ftp passive mode 解析到的動態 ip/port 的連線
-* 新增 filter blockifempty 參數，預設過濾條件是空的情況下會無條件放行，這定此參數可以調整成無條件阻擋
+  * 包含所有 tcp 20/21 port 以及 ftp passive mode 解析到 ftp-data 動態 ip/port 的連線
+* 新增 filter blockifempty 參數，預設過濾條件是空的情況下會無條件放行，設定此參數可以調整成無條件阻擋
 ```
 <filter id="1" blockifempty="yes">
 <or>
