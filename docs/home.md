@@ -10,7 +10,8 @@
 </or>
 </filter>
 ```
-* 新增 filter blockifempty 參數。為了解決 filter 預設過濾條件是空的情況下會無條件放行，新增此參數可以調整成無條件阻擋
+* 新增 filter blockifempty 參數
+  * 為了解決 filter 預設過濾條件是空的情況下會無條件放行，新增此參數可以調整成無條件阻擋
 ```xnk
 <filter id="1" blockifempty="yes">
 <or>
