@@ -1,4 +1,15 @@
 # Release Note
+## 2021-09-16 (3.0)
+\- function added \-
+* 新增版本號碼 3.0 釋出
+* 升級 sshd 版本到 OpenSSH_8.6p1，以修正舊版漏洞
+* 使用更穩定的 httpd(www) 的軟體版本，解決長期 web console 不穩定需要定時重開的問題
+* 提高 GRISM xml Save/Load 數量到 20 組
+* 新增 GRISM Xml 2chart 文字圖形界面以及 2gml 底層格式界面，可選擇在不同模式下檢查設定是否正確
+
+\- bug fixed \-
+* netflow v9 以上 bytes 欄位從 4 Bytes 調整到 8 Bytes，以修正單一連線大小超過4G的問題
+
 ## 2021-06-28
 \- function added \-
 * 新增 ftp 過濾功能
