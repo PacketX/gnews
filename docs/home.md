@@ -3,7 +3,7 @@
 \- function added \-
 * 新增 web console v3 
 * 新增 TACACS+ 
-* 整合 GRISM-A VPORT Link state
+* 與 GRISM-A 型號整合虛擬介面對應實體介面的狀態取得以及設定、動態更新過濾條件
 * 新增 Heartbeat 狀態顯示以及描述設定
 * 新增直接在 Chain 裡面使用 not filter (ex. \<fid\>!F1\</fid\>) 
 * 新增 DNS syslog type AAAA 以及 reply error code (1-9) 
