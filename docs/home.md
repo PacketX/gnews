@@ -1,4 +1,18 @@
 # Release Note
+## 2022-01-13 (3.1)
+\- function added \-
+* 新增 web console v3 
+* 新增 TACACS+ 
+* 整合 GRISM-A VPORT Link state
+* 新增 Heartbeat 狀態顯示以及描述設定
+* 新增直接在 Chain 裡面使用 not filter (ex. \<fid\>!F1\</fid\>) 
+* 新增 DNS syslog type AAAA 以及 reply error code (1-9) 
+* 新增 GTP-U parsing extension header 
+* 新增 GRISM Port Linkdown filter
+
+\- bug fixed \-
+* 修正 www service 開機有時無法正常啟動
+
 ## 2021-09-16 (3.0)
 \- function added \-
 * 新增版本號碼 3.0 釋出
