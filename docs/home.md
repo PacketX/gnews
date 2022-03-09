@@ -1,4 +1,12 @@
 # Release Note
+## GRISM-3.2.220309
+\- function added \-
+* 新增 Statistic Counter Protocol/TCP/UDP coucurrent bytes
+* 新增 Service enable/disable 頁面
+
+\- bug fixed \-
+* 新增 heartbeat id 設定以及過濾支援以避免刪除 heartbeat 設定造成過濾條件誤判
+
 ## 2022-01-13 (3.1)
 \- function added \-
 * 新增 web console v3 
