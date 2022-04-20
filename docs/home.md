@@ -1,4 +1,15 @@
 # Release Note
+
+## GRISM-3.3.220420
+\- function added \-
+* 新增 Backup, Restore from file 以及 Factory reset 功能
+* 新增 filter 參數 tuple5_live_hashtable_size 支援，可由 syslog 或是 xmlrpc 動態新增 5-tuple 條件
+* 新增 L2 Switch like 功能，能指定介面並儲存 source mac address 到 mac table，並根據 dest mac address 查詢 mac table 找到輸出介面
+
+\- bug fixed \-
+* VPORT 增加過多造成問題，調整為全部介面加起來不能超過 63
+* 修正 lite clear counter 會短暫清掉 link status 的問題
+
 ## GRISM-3.2.220309
 \- function added \-
 * 新增 Statistic Counter Protocol/TCP/UDP coucurrent bytes
