@@ -1,5 +1,10 @@
 # Release Note
 
+## GRISM-3.3.220422
+\- bug fixed \-
+* 修正 snmp 無法取得 VPORT 的流量資訊
+* 修正 snmp 無法取得 Flow Counter 資訊
+
 ## GRISM-3.3.220420
 \- function added \-
 * 新增 Backup, Restore from file 以及 Factory reset 功能
