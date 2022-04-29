@@ -1,5 +1,9 @@
 # Release Note
 
+## GRISM-3.4.220428
+\- bug fixed \-
+* 修正 MEC handover 問題
+
 ## GRISM-3.3.220422
 \- bug fixed \-
 * 修正 snmp 無法取得 VPORT 的流量資訊
