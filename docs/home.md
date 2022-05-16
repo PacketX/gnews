@@ -1,5 +1,31 @@
 # Release Note
 
+## GRISM-3.4.220513
+\- function added \-
+* 新增 get statistics json uptime second (uptime_s) 參數
+* 支援 設定flow/flowv6 enable/disable以及調整大小不需要重新開機
+* 支援 GRISM XML `<chain/><in/>` 後面可以直接放 `<next/>`，不需要先放 `<fid/>`
+
+old
+```
+<chain>
+    <in>P0</in>
+    <fid>F1</fid>
+    <next>
+        <out>P1</out>
+    </next>   
+</chain>
+```
+new
+```
+<chain>
+    <in>P0</in>
+    <next>
+        <out>P1</out>
+    </next>   
+</chain>
+```
+
 ## GRISM-3.4.220428
 \- bug fixed \-
 * 修正 MEC handover 問題
