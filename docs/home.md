@@ -1,5 +1,16 @@
 # Release Note
 
+## GRISM-3.6.220525
+\- function added \-
+* 新增/刪除 使用者功能
+* 新增 Port Enable/Disable 功能 (需重開機生效)
+* 新增 Snapshot Refresh 功能以及開放設定儲存路徑 Storage, Dir 欄位
+* 新增設定管理介面IP以及time server不須重開機即可生效
+
+\- bug fixed \-
+* 修正 更新 firmware 時上傳檔案提供鎖住並提示的畫面
+* 修正 Counter 頁面 clear counter 沒有清掉 Filter Matched Counter
+
 ## GRISM-3.4.220513
 \- function added \-
 * 新增 get statistics json uptime second (uptime_s) 參數
