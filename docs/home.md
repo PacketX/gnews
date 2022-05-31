@@ -1,5 +1,14 @@
 # Release Note
 
+## GRISM-3.7.220527
+\- function added \-
+* 新增 ouput 支援 minbps, maxbps 限制頻寬功能
+```xml
+<output id="8" minbps="200000000" maxbps="500000000">
+    <port>P8</port>
+</output>
+```
+
 ## GRISM-3.6.220525
 \- function added \-
 * 新增/刪除 使用者功能
@@ -18,7 +27,7 @@
 * 支援 GRISM XML `<chain/><in/>` 後面可以直接放 `<next/>`，不需要先放 `<fid/>`
 
 old
-```
+```xml
 <chain>
     <in>P0</in>
     <fid>F1</fid>
@@ -28,7 +37,7 @@ old
 </chain>
 ```
 new
-```
+```xml
 <chain>
     <in>P0</in>
     <next>
@@ -93,7 +102,7 @@ new
 \- function added \-
 * 新增 ftp 過濾功能
   * 包含所有 tcp 20/21 port 以及 ftp passive mode 解析到 ftp-data 動態 ip/port 的連線
-```
+```xml
 <filter id="1" sessionBase="no">
 <or>
   <find name="ftp" relation="==" content=""/>
@@ -102,7 +111,7 @@ new
 ```
 * 新增 filter blockifempty 參數
   * 為了解決 filter 預設過濾條件是空的情況下會無條件放行，新增此參數可以調整成無條件阻擋
-```xnk
+```xml
 <filter id="1" blockifempty="yes">
 <or>
 </or>
