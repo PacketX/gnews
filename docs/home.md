@@ -1,5 +1,23 @@
 # Release Note
 
+## GRISM-3.8.220602
+\- function added \-
+* 調整帳號管理功能
+  *  可以列舉目前的帳號清單
+  *  刪除無需要密碼 （因為全部都是admin）
+  *  保護[packetx]這個預設帳號不可以刪除
+* 新增 output 使用預設 mac 修改封包功能，可搭配實作 L3 breakout 功能
+```xml
+<output id="3">
+    <port>P5</port>
+    <arp_reply_default_mac/>
+</output>
+<output id="5">
+    <port>P5</port>
+    <modify_src_default_mac/>
+</output>
+```
+
 ## GRISM-3.7.220527
 \- function added \-
 * 新增 ouput 支援 minbps, maxbps 限制頻寬功能
