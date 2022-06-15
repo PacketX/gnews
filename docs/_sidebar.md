@@ -4,4 +4,4 @@
   - [Release Note](/)
   
 - Links
-  - [GRISM XML](https://packetx.github.io/gml/)
+  - [GRISM XML](https://packetx.gitbook.io/grism-xml/)
