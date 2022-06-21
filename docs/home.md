@@ -1,4 +1,27 @@
 # Release Note
+## GRISM-3.9.220621
+\- function added \-
+* Syslog type:system send more details about setting ifcfgs, interface enable/disable, tacacs+, netflow, etc.
+* TACACS+ 如無法連上則改用本機登入
+* 新增 resolve name server 設定
+* 新增 filter find ip.flags.df 以及 ip.flags.mf 過濾條件
+```xml
+<filter id="1000" alt="test" sessionBase="no">
+    <or>
+        <find name="ip.flags.df" relation="==" content="1"/>
+        <find name="ip.flags.mf" relation="==" content="0"/>
+    </or>
+</filter>
+```
+* 新增 filter find packet.len 封包長度過濾條件 以及 >= , <= relation 參數(只支援部分如 tcp.port, udp.port, packet.len 等過濾條件)
+```xml
+<filter id="1" sessionBase="no">
+    <and>
+        <find name="packet.len" relation="&gt;=" content="128"/>
+        <find name="packet.len" relation="&lt;=" content="512"/>
+    </and>
+</filter>
+```
 
 ## GRISM-3.8.220602
 \- function added \-
