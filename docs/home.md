@@ -1,4 +1,12 @@
 # Release Note
+## GRISM-3.10.220623
+\- function added \-
+* 支援 output icmp_reply_fragment_need 功能 [<icmp_reply_fragment_need/>](https://packetx.gitbook.io/grism-xml/readme/output#less-than-icmp_reply_fragment_need-greater-than)
+
+\- bug fixed \-
+* www 支援設定送 syslog 到多個 server
+
+
 ## GRISM-3.9.220621
 \- function added \-
 * Syslog type:system send more details about setting ifcfgs, interface enable/disable, tacacs+, netflow, etc.
