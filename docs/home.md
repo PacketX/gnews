@@ -1,4 +1,9 @@
 # Release Note
+
+## GRISM-3.11.220628
+\- bug fixed \-
+* 修正 GRISM-3.7.220527 之後版本部分 flow 無法 timeout 的問題
+
 ## GRISM-3.10.220623
 \- function added \-
 * 支援 output icmp_reply_fragment_need 功能 [<icmp_reply_fragment_need/>](https://packetx.gitbook.io/grism-xml/readme/output#less-than-icmp_reply_fragment_need-greater-than)
