@@ -1,6 +1,7 @@
 # Release Note
 
 ## GRISM-3.13.220718
+\- function added \-
 * 新增 Pcap Replay 功能操作頁面
 * 新增 Traffic Generate 功能操作頁面
 
