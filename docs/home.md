@@ -1,5 +1,9 @@
 # Release Note
 
+## GRISM-3.13.220718
+* 新增 Pcap Replay 功能操作頁面
+* 新增 Traffic Generate 功能操作頁面
+
 ## GRISM-3.12.220711
 \- bug fixed \-
 * 修正 SCTP DATA chunk padding size 計算錯誤
