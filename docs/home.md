@@ -6,7 +6,7 @@
 * MEC NGAP Handover support
 * MEC S1AP/NGAP parsing items syslog support
 * MEC Server to UE more smooth
-* traffic-gen <msinterval> tag and ICMP protocol support
+* traffic-gen xml \<msinterval\> tag and ICMP protocol support
 
 ## GRISM-3.13.220718
 \- function added \-
