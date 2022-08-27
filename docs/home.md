@@ -1,12 +1,15 @@
 # Release Note
 
-## GRISM-4.2.220822
+## GRISM-4.2.220826
 \- function added \-
 * MEC Mapping change to packet base
 * MEC NGAP Handover support
 * MEC S1AP/NGAP parsing items syslog support
 * MEC Server to UE more smooth
 * traffic-gen xml \<msinterval\> tag and ICMP protocol support
+
+\- bug fixed \-
+* fix MEC S1AP/NGAP items table timeout release without lock
 
 ## GRISM-3.13.220718
 \- function added \-
