@@ -1,5 +1,15 @@
 # Release Note
 
+## GRISM-4.3.220930
+\- function added \-
+* GRISM XML 新增 ```<script></script>``` support
+* 新增 Packet Data 封包內容產生工具
+* traffic-gen 新增 Packet Data 設定
+
+\- bug fixed \-
+* MEC S1AP/NGAP items table 資源釋放調整解決於大網共構下UE頻繁attach/detach能運作正常
+
+
 ## GRISM-4.2.220826
 \- function added \-
 * MEC Mapping change to packet base
