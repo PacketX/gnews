@@ -1,6 +1,6 @@
 # Release Note
 
-## GRISM-4.3.220930
+## GRISM-4.3.221004
 \- function added \-
 * GRISM XML 新增 ```<script></script>``` support
 * 新增 Packet Data 封包內容產生工具
@@ -8,6 +8,7 @@
 
 \- bug fixed \-
 * MEC S1AP/NGAP items table 資源釋放調整解決於大網共構下UE頻繁attach/detach能運作正常
+* snmpd 暫存檔案改寫到ramdisk 避免檔案系統因異常重開機後發生無法寫入的問題
 
 
 ## GRISM-4.2.220826
