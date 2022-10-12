@@ -1,5 +1,13 @@
 # Release Note
 
+## GRISM-4.4.221011
+\- function added \-
+* Web Console 支援 GRISM XML 多檔案編輯包含 run.xml, run1.xml ~ run9.xml 以及 js 檔案
+* Web Console 新增 System->Log 頁面
+
+\- bug fixed \-
+* 修正設定 heartbeat id 如果沒有同時設定 description 會失敗的問題
+
 ## GRISM-4.3.221004
 \- function added \-
 * GRISM XML 新增 ```<script></script>``` support
