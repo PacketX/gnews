@@ -11,6 +11,14 @@
 ## GRISM-4.3.221004
 \- function added \-
 * GRISM XML 新增 ```<script></script>``` support
+```xml
+<script src="common.js"></script>
+<script>
+<![CDATA[
+    port_mirror('P0', 'P1,P2');
+]]>
+</script>
+```
 * 新增 Packet Data 封包內容產生工具
 * traffic-gen 新增 Packet Data 設定
 
