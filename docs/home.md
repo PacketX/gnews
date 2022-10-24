@@ -1,13 +1,15 @@
 # Release Note
-<!-- 
-## GRISM-4.4.221011
+
+## GRISM-4.5.221022
 \- function added \-
 * Web Console 支援 GRISM XML 多檔案編輯包含 run.xml, run1.xml ~ run9.xml 以及 js 檔案
 * Web Console 新增 System->Log 頁面
+* ouptut dir xml 新增 category 參數以時間目錄分類 pcap 檔案 以及 Packet Snapshot, Pcap Replay 多支援一層目錄進出
 
 \- bug fixed \-
 * 修正設定 heartbeat id 如果沒有同時設定 description 會失敗的問題
--->
+* 修正 IP Fragmentation Correlation 以及 Reconstruct 在封包順序不對時可能會有問題
+
 
 ## GRISM-4.3.221004
 \- function added \-
