@@ -1,5 +1,12 @@
 # Release Note
 
+## GRISM-4.6.221101
+\- function added \-
+* 新增 output xml 參數 nvgre_sip, nvgre_dmac, nvgre_type 支援以方便在不指定介面來源IP的情況下也能送 GRE Tunnel，另新增 eth/ip 兩種 type 設定
+
+\- bug fixed \-
+* Web Console 調整不預先載入 run1-run9 xml 以及 js 等內容，避免因檔案內容過大造成載入異常
+
 ## GRISM-4.5.221022
 \- function added \-
 * Web Console 支援 GRISM XML 多檔案編輯包含 run.xml, run1.xml ~ run9.xml 以及 js 檔案
