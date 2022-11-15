@@ -1,6 +1,6 @@
 # Release Note
 
-## GRISM-4.7.221115
+## GRISM-4.7.221116
 \- bug fixed \-
 * fix MEC Handover issue 
 
