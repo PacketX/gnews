@@ -1,5 +1,9 @@
 # Release Note
 
+## GRISM-4.7.221115
+\- bug fixed \-
+* fix MEC Handover issue 
+
 ## GRISM-4.6.221101
 \- function added \-
 * 新增 output xml 參數 nvgre_sip, nvgre_dmac, nvgre_type 支援以方便在不指定介面來源IP的情況下也能送 GRE Tunnel，另新增 eth/ip 兩種 type 設定
