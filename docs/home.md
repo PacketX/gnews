@@ -1,5 +1,9 @@
 # Release Note
 
+## GRISM-4.7.221122
+\- enhancement \-
+* more suitable hash table collision method for MEC s1ap/ngap record mapping
+
 ## GRISM-4.7.221116
 \- bug fixed \-
 * fix MEC Handover issue 
