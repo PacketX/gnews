@@ -1,6 +1,6 @@
 # Release Note
 
-<!--
+
 ## GRISM-4.8.230103
 \- function added \-
 - add T12S Hardware model support
@@ -9,7 +9,6 @@
 - 新增 Help -> User Manual [GRISM XML](https://packetx.gitbook.io/grism-xml) 手冊
 - Pcap Replay/Traffic Generate/Packet Snapshot 頁面提供停止功能以及 GRISM XML 語法
 - 新增 filter -> find arp.request.sender.ip 過濾條件
--->
 
 ## GRISM-4.7.221122
 \- enhancement \-
