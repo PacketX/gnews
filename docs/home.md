@@ -1,3 +1,18 @@
+## GRISM-4.9.230314
+\- function added \-
+- 新增 Storage 頁面，包含目前已掛載檔案系統以及修改掛載設定
+- 自動掛載usb file system
+- 新增G8S 型號支援，8x1G, 其中包含兩對bypass
+- traffic-gen 新增 source mac, dest mac 支援
+- 新增 output dns_response_ipv6 xml 支援
+- Memory Usage 顯示 free 改成 available 
+- dns log 新增 SOA TXT 格式
+- https 服務改用 nginx 代理
+- 新增 SCTP DATA chunk 封包重組功能
+
+\- bug fixed \-
+- 修正 CN71XX 型號 input bytes 流量計算誤差
+
 ## GRISM-4.8.230103
 \- function added \-
 - add T12S Hardware model support
