@@ -1,3 +1,11 @@
+## GRISM-5.1.230517
+\- function added \-
+- MEC Mapping 頁面 新增 PLMN ID, CELL ID, SPID 欄位
+- MEC 新增 gtp.data.by.s1ap.CellIdentity, gtp.data.by.s1ap.SubscriberProfileIDforRFP 過濾條件
+- In-Tunnel 新增 L2MPLS/MPLS in UDP/GRE
+- 新增 output/action striping mpls-in-gre xml support
+- 新增 output tagging vxlan xml support [VXLAN breakout](https://packetx.gitbook.io/grism-xml/docs/vxlan-breakout)
+
 ## GRISM-5.0.230330
 \- function added \-
 - 5.0 之後版本不再支援 CPU CN68XX 架構包含型號 T2G8, T16, T32 
