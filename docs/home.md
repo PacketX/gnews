@@ -1,3 +1,12 @@
+## GRISM-5.2.230615
+\- function added \-
+- MEC mec.mapping.ue.ipv4.connected filter support for trigger core paging issue
+- System Status Temperature/Fan support
+- Syslog alert boot/Link status/Temperature/Fan/CPU usage/ support
+
+\- bug fixed \-
+- MEC CELL-ID field parsing issue
+
 ## GRISM-5.1.230517
 \- function added \-
 - MEC Mapping 頁面 新增 PLMN ID, CELL ID, SPID 欄位
