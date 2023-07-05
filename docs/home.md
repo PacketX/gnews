@@ -6,7 +6,7 @@
 - add MEC cron to clear s1ap table items which idle time over max
 - add matched per second support for counter and syslog alert
 
-- \- bug fixed \-
+\- bug fixed \-
 - version 5.1/5.2 get system status/statistics data fail
 
 ## GRISM-5.2.230615
