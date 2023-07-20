@@ -1,3 +1,4 @@
+<!--
 ## GRISM-5.3.230703
 \- function added \-
 - add [filter](https://packetx.gitbook.io/grism-xml/readme/filter) start, position, within and mpslog parameters support
@@ -5,9 +6,7 @@
 - add ssl.ja3s_digest filter support
 - add MEC cron to clear s1ap table items which idle time over max
 - add matched per second support for counter and syslog alert
-
-\- bug fixed \-
-- version 5.1/5.2 get system status/statistics data fail
+-->
 
 ## GRISM-5.2.230615
 \- function added \-
