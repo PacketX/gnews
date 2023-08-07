@@ -1,3 +1,8 @@
+## GRISM-5.3.230804
+\- function added \-
+- add snmp get Fan Fault and Temperature overheat
+- diable system status syslog alert function which default is enable since 5.2, now is useless
+
 ## GRISM-5.3.230719
 \- function added \-
 - add [filter](https://packetx.gitbook.io/grism-xml/readme/filter) start, position, within and mpslog parameters support
