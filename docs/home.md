@@ -1,3 +1,8 @@
+## GRISM-5.3.230814
+\- function added \-
+- ssh 更新版本從 8.6p1 到 9.4p1
+- nginx 調整設定以符合資安需求
+
 ## GRISM-5.3.230804
 \- function added \-
 - add snmp get Fan Fault and Temperature overheat
