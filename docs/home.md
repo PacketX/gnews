@@ -1,3 +1,10 @@
+## 5.3.230824
+\- function added \-
+- restore password after upgrade firmware
+
+\- bug fixed \-
+- fix SCTP Reconstruct memory issue
+
 ## GRISM-5.3.230814
 \- function added \-
 - ssh 更新版本從 8.6p1 到 9.4p1
