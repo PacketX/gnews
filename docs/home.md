@@ -1,3 +1,11 @@
+## GRISM-5.4.230825
+\- function added \-
+- add pcap file upload for pcap replay function support
+- add pcapng format and Linux cooked captured v1 layer for pcap replay function support
+- add syslog daemon default enable support
+- add G8S Bypass WDT function support
+- add clear filter counter for clear lite counter api support
+
 ## GRISM-5.3.230824
 \- function added \-
 - restore password after upgrade firmware
