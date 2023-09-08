@@ -1,3 +1,7 @@
+## GRISM-5.4.230908
+\- bug fixed \-
+- CPU 100% when non-MEC device try cron to clear s1ap table items (defult every monday 02:00 am)
+
 ## GRISM-5.4.230825
 \- function added \-
 - add pcap file upload for pcap replay function support
