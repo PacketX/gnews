@@ -1,7 +1,7 @@
 ## GRISM-5.4.231020
 \- function added \-
 - l2gre, vxlan mapping table filter support
-- enhanc replay pcap speed and more stable
+- enhance replay pcap speed and more stable
 - ICMP heartbeat support
 
 \- bug fixed \-
