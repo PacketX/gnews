@@ -1,3 +1,14 @@
+## GRISM-5.4.231020
+\- function added \-
+- l2gre, vxlan mapping table filter support
+- enhanc replay pcap speed and more stable
+- ICMP heartbeat support
+
+\- bug fixed \-
+- SCTP reconstruct function crash at CN73xx in one day and CN78xx in two weeks
+- fix System->Status Time Zone issue
+- fixed www add user allow duplicate
+
 ## GRISM-5.3.230918
 \- bug fixed \-
 - fix System->Status Time Zone issue
