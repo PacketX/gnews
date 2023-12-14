@@ -1,3 +1,17 @@
+## GRISM-5.4.231214
+\- function added \-
+- add dns.a filter matched log dns_query_name field
+- add nvme driver for IM8724 model to add NVME ssd support
+- change product logo
+- add Hard disk write throuthput display at Flow page
+- enhance snort rule to filter gadget
+
+\- bug fixed \-
+- more stable for extreme s1ap streamming test
+- more stable for write pcap files
+- fix T12s bypass interface crc error happen occasionally
+- fix delete VPorts issue
+
 ## GRISM-5.4.231020
 \- function added \-
 - l2gre, vxlan mapping table filter support
