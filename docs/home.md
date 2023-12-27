@@ -1,3 +1,11 @@
+## GRISM-5.5.231222
+\- function added \-
+- add [NAT](https://packetx.gitbook.io/grism-xml/docs/l3nat_breakout) support
+- add ICMP reply support
+- add ICMP type, code filter
+- add arp_srcip output support for arp dest mac
+- modify Country Codes filter add block if empty parameter
+
 ## GRISM-5.4.231214
 \- function added \-
 - add dns.a filter matched log dns_query_name field
