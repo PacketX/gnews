@@ -1,10 +1,14 @@
-## GRISM-5.5.231222
+## GRISM-5.5.240108
 \- function added \-
 - add [NAT](https://packetx.gitbook.io/grism-xml/docs/l3nat_breakout) support
+- add [mec.js](https://packetx.gitbook.io/grism-xml/reference/mec.js) support to simplify GRISM XML for MEC
 - add ICMP reply support
 - add ICMP type, code filter
+- add [action arp reply / icmp reply / icmp reply fragment need](https://packetx.gitbook.io/grism-xml/readme/action#less-than-arp_reply_default_mac-greater-than) tag support
 - add arp_srcip output support for arp dest mac
 - modify Country Codes filter add block if empty parameter
+- add Status -> Process core process status display
+- add syslog alert if core process crash
 
 ## GRISM-5.4.231214
 \- function added \-
