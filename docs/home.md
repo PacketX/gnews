@@ -1,3 +1,7 @@
+## GRISM-5.5.240122
+\- function added \-
+- web server weak fix for ZAP scanning report
+
 ## GRISM-5.5.240108
 \- function added \-
 - add [NAT](https://packetx.gitbook.io/grism-xml/docs/l3nat_breakout) support
