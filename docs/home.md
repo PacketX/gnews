@@ -1,3 +1,7 @@
+## GRISM-5.6.240201
+\- function added \-
+- add online update version check, download and upgrade
+
 ## GRISM-5.5.240122
 \- function added \-
 - web server weak fix for ZAP scanning report
