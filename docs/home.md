@@ -2,6 +2,7 @@
 \- function added \-
 - add Statistics -> Service support
 - add Configuration -> Interface port mapping device picture support
+- add [detect If Dstination IP NOT in DNS Response IP Table](https://packetx.gitbook.io/grism-xml/docs/detect-if-dstination-ip-not-in-dns-response-ip-table)
 
 ## GRISM-5.6.240201
 \- function added \-
