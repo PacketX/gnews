@@ -1,3 +1,8 @@
+## GRISM-5.6.240320
+\- function added \-
+- add Statistics -> Service support
+- add Configuration -> Interface port mapping device picture support
+
 ## GRISM-5.6.240201
 \- function added \-
 - add online update version check, download and upgrade
