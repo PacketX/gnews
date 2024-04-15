@@ -1,3 +1,9 @@
+## GRISM-5.6.240412
+\- function added \-
+- add modify source/destionation port
+- add T12S hardware(KOB3400) smart fan control support
+- more general using for icmp heartbeat function
+
 ## GRISM-5.6.240320
 \- function added \-
 - add Statistics -> Service support
