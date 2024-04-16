@@ -1,7 +1,7 @@
 ## GRISM-5.6.240412
 \- function added \-
 - add modify source/destionation port
-- add output tcpreset support
+- add output type TCP Reset support
 - add T12S hardware(KOB3400) smart fan control support
 - more general using for icmp heartbeat function
 
