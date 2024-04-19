@@ -1,3 +1,8 @@
+## GRISM-5.5.240418
+\- function added \-
+- upgrade sshd to 9.7p1
+- remove ChaCha20-Poly1305 algorithm from ssh
+
 ## GRISM-5.6.240412
 \- function added \-
 - add modify source/destionation port
@@ -17,7 +22,7 @@
 
 ## GRISM-5.5.240122
 \- function added \-
-- web server weak fix for ZAP scanning report
+- nginx configuration enhancement
 
 ## GRISM-5.5.240108
 \- function added \-
@@ -62,7 +67,7 @@
 
 ## GRISM-5.4.230908
 \- bug fixed \-
-- CPU 100% when non-MEC device try cron to clear s1ap table items (defult every monday 02:00 am)
+- CPU issue when non-MEC device try cron to clear s1ap table items (defult every monday 02:00 am)
 
 ## GRISM-5.4.230825
 \- function added \-
@@ -81,8 +86,8 @@
 
 ## GRISM-5.3.230814
 \- function added \-
-- ssh 更新版本從 8.6p1 到 9.4p1
-- nginx 調整設定以符合資安需求
+- ssh upgrade from 8.6p1 to 9.4p1
+- nginx configuration enhancement
 
 ## GRISM-5.3.230804
 \- function added \-
