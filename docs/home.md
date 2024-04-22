@@ -1,3 +1,8 @@
+## GRISM-5.6.240418
+\- function added \-
+- upgrade sshd to 9.7p1
+- remove ChaCha20-Poly1305 algorithm from ssh
+
 ## GRISM-5.5.240418
 \- function added \-
 - upgrade sshd to 9.7p1
