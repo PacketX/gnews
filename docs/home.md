@@ -1,3 +1,8 @@
+## GRISM-5.6.240423
+\- function added \-
+- deduplication specific ports (include LOOP ports)
+- adjust KOB3410 (G8S) fan default speed to 50%
+
 ## GRISM-5.6.240418
 \- function added \-
 - upgrade sshd to 9.7p1
