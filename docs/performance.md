@@ -1,13 +1,16 @@
 # Performance
 ## T20/F2T12/F4T4
 ### Max \<find\> count in \<filter\>
-- IPv4 address: 10000000
+- IPv4 address: 10,000,000
 
 ### Max IPv4 flow table size 32,000,000
 flowCacheBaseSize: 2000000 (2000000x16=32,000,000)
 
 ### Max IPv6 flow table size 4,000,000
 flowv6TableSize: 4000000
+
+### Throughupt
+- Pps: 10,000,000
 
 ### Netflow eps
 - throughput:   17Gbps
