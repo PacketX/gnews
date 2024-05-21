@@ -19,6 +19,10 @@ flowv6TableSize: 4000000
 - flow per second: 42336
 - flow traffic: 9.65Mbps
 
+## T12S
+### deduplication
+- 64 bytes 4.3Gbps
+
 ## G8
 ### Max \<find\> count in \<filter\>
 - IPv4 address: 2000000
