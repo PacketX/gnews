@@ -1,3 +1,11 @@
+## GRISM-5.7.240603
+\- function added \-
+-  add model Q4T4 build support
+
+\- bug fixed \-
+- fix modify_tcp_syn_mss issue
+- fix gre orrelation tunnel issue
+  
 ## GRISM-5.7.240529
 \- function added \-
 - vxlan breakout enhancement for working with MEC [MEC+VXLAN Breakout](https://packetx.gitbook.io/grism-xml/docs/mec+vxlan-breakout)
