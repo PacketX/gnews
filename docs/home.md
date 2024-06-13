@@ -1,6 +1,6 @@
 ## GRISM-5.7.240603
 \- function added \-
--  add model Q4T4 build support
+- add model Q4T4 build support
 
 \- bug fixed \-
 - fix modify_tcp_syn_mss issue
