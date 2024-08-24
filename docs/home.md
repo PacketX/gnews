@@ -1,10 +1,10 @@
 ## GRISM-5.8.240730
 \- function added \-
-- add Statictics Country support
+- add Country Statictics support
 - upgrade openssh to 9.8p1
 - add ssl dpi ja3s syslog support
-- add dns query name filter case insensitive support
-- add tcp segments reassembled for only ssl protocol and two segments maximum support
+- add dns query name filter default case insensitive support
+- add tcp segments reassembled support for only ssl protocol and two segments maximum
 - add G8S/T12S/T12/T20(F2T12,F4T4,Q4T4) iptables support for icmp type timestamp request/reply block (linux kernel reinstall needed)
 - add web console DEV API page support
 - add web console Flow page hardware bypass/heartbeat port status support
