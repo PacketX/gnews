@@ -1,3 +1,11 @@
+## GRISM-5.8.241004
+\- function added \-
+- nginx configuration enhancement
+- set xmlrpc service default localhost for security issue
+
+\- bug fixed \-
+- fix 25G/10G link status issue for Q4T4
+
 ## GRISM-5.8.240730
 \- function added \-
 - add Country Statictics support
