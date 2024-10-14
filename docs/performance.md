@@ -10,7 +10,7 @@ flowCacheBaseSize: 2000000 (2000000x16=32,000,000)
 flowv6TableSize: 4000000
 
 ### Throughupt
-- Pps: 10,000,000
+- Pps: 10,000,000 (with flow table)
 
 ### Netflow eps
 - throughput:   17Gbps
@@ -23,7 +23,7 @@ flowv6TableSize: 4000000
 ### deduplication
 - 64 bytes 4.3Gbps
 ### Throughupt
-- Pps: 8,000,000 (64 bytes)
+- Pps: 12,000,000 (64 bytes) (without flow table)
 
 ## G8
 ### Max \<find\> count in \<filter\>
