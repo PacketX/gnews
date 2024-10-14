@@ -22,6 +22,8 @@ flowv6TableSize: 4000000
 ## T12S
 ### deduplication
 - 64 bytes 4.3Gbps
+### Throughupt
+- Pps: 8,000,000 (64 bytes)
 
 ## G8
 ### Max \<find\> count in \<filter\>
