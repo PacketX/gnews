@@ -2,6 +2,7 @@
 \- function added \-
 - add more DPI function support
 - add syslogd more rotated logs to keep
+- add global time zone setting support
 
 \- bug fixed \-
 - icmp heartbeat vlan support
