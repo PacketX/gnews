@@ -1,3 +1,12 @@
+## GRISM-5.9.241104
+\- function added \-
+- add more DPI function support
+- add syslogd more rotated logs to keep
+
+\- bug fixed \-
+- icmp heartbeat vlan support
+- bug fix for record arp table
+
 ## GRISM-5.8.241004
 \- function added \-
 - nginx configuration enhancement
