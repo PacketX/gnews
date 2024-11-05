@@ -7,6 +7,7 @@
 \- bug fixed \-
 - icmp heartbeat vlan support
 - bug fix for record arp table
+- bug fix for www service issue
 
 ## GRISM-5.8.241004
 \- function added \-
