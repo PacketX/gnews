@@ -1,3 +1,8 @@
+## GRISM-5.5.250114
+\- bug fixed \-
+- fix RAN-UE-NGAP-ID integer range issue
+- fix NGAP transportLayerAddress ipv6 parsing issue
+
 ## GRISM-5.9.241104
 \- function added \-
 - add more DPI function support
