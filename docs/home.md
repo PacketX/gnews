@@ -1,3 +1,13 @@
+## GRISM-5.9.250114
+\- function added \-
+- add G8 hardware iptables support
+- update dbip country mmdb to 2024-12
+- add netflow v9 gtp/gre/vxlan tunnel outer ip
+- 
+\- bug fixed \-
+- fix RAN-UE-NGAP-ID integer range issue
+- fix NGAP transportLayerAddress ipv6 parsing issue
+
 ## GRISM-5.5.250114
 \- bug fixed \-
 - fix RAN-UE-NGAP-ID integer range issue
