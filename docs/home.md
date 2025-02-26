@@ -1,3 +1,18 @@
+## GRISM-5.10.250224
+\- function added \-
+- add syslog, dpilog, netflow and interface description setting without interrupt system
+- add tacacs+ admin(15)/guest(1) priv support
+- add more GTP-C syslog support
+- add GRISM monitor other GRISM port support
+- add hide runX.xml from UI support
+- add encapsulation Encrypt Key timeout support
+- add flowv6 filter support
+
+\- bug fixed \-
+- fix gtp-c v1,v2 parsing issue
+- fix grism xml memory usage for hash table issue
+- fix find type issue if unsupport type parsed
+
 ## GRISM-5.5.250206
 \- function added \-
 - upgrade sshd to 9.8p1
