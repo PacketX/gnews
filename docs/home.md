@@ -1,3 +1,9 @@
+## GRISM-6.0.250310
+\- function added \-
+- upgrade sshd to 9.9p2
+- add DNS over TCP support
+- add dns client query per second (QPS) syslog support
+
 ## GRISM-5.10.250224
 \- function added \-
 - add syslog, dpilog, netflow and interface description setting without interrupt system
