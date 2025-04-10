@@ -2,6 +2,7 @@
 \- function added \-
 - add ja4 ja4s support
 - add matched syslog blocked=yes/no string support
+- fix security issue
 
 ## GRISM-5.5.250317
 \- function added \-
