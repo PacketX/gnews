@@ -1,3 +1,8 @@
+## GRISM-6.1.250327
+\- function added \-
+- add ja4 ja4s support
+- add matched syslog blocked=yes/no string support
+
 ## GRISM-5.5.250317
 \- function added \-
 - upgrade sshd to 9.9p2
