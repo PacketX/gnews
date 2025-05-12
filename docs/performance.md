@@ -28,6 +28,9 @@ flowv6TableSize: 4000000
 - in Pps: 12,000,000 (64 bytes) (without flow table)
 - in/out Pps: 8,000,000 (64 bytes) (without flow table)
 
-## G8
+## G8/G8S
 ### Max \<find\> count in \<filter\>
 - IPv4 address: 2000000
+### Throughupt
+- in Pps: 370,000 (with flow table)
+- in Pps: 500,000 (without flow table)
