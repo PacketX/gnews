@@ -5,7 +5,7 @@
 
 \- bug fixed \-
 - fix vxlan change client port issue
-- fix nginx ssl crypt weak
+- fix web service security issue
 - fix G8s bypass init issue
 
 ## GRISM-6.1.250327
