@@ -1,3 +1,13 @@
+## GRISM-6.2.250502
+\- function added \-
+- GRISM-A heartbeat submit function support
+- gtpc log ipv6 prefix support 
+
+\- bug fixed \-
+- fix vxlan change client port issue
+- fix nginx ssl crypt weak
+- fix G8s bypass init issue
+
 ## GRISM-6.1.250327
 \- function added \-
 - add ja4 ja4s support
