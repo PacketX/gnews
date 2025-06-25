@@ -10,7 +10,7 @@ flowCacheBaseSize: 2000000 (2000000x16=32,000,000)
 flowv6TableSize: 4000000
 
 ### Throughupt
-- in Pps: 4,500,000 (64 bytes) (with flow table)
+- in Pps: 4,600,000 (64 bytes) (with flow table)
 - in Pps: 32,000,000? (64 bytes) (without flow table)
 - in/out Pps: 23,000,000 (64 bytes) (without flow table)
 
