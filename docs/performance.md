@@ -11,7 +11,7 @@ flowv6TableSize: 4000000
 
 ### Throughupt
 - in Pps: 4,600,000 (64 bytes) (with flow table)
-- in Pps: 32,000,000? (64 bytes) (without flow table)
+- in Pps: 32,000,000 (64 bytes) (without flow table)
 - in/out Pps: 23,000,000 (64 bytes) (without flow table)
 
 ### Netflow eps
@@ -34,3 +34,15 @@ flowv6TableSize: 4000000
 ### Throughupt
 - in Pps: 370,000 (with flow table)
 - in Pps: 500,000 (without flow table)
+
+
+## DPDK test
+```
+cn98(32 cores)
+in Pps: 8,500,000 (64 bytes) (with flow table)
+in Pps: 14,000,000 (64 bytes) (without flow table)
+
+cn106(24 cores)
+in Pps: 20,000,000 (64 bytes) (with flow table)
+in Pps: 44,000,000 (64 bytes) (without flow table)
+```
