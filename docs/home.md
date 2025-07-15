@@ -1,3 +1,12 @@
+## GRISM-6.3.250714
+\- function added \-
+- simplify XML save load function
+- enhance GRISM-A heartbeat detect and switch XML config
+- add netflow packet length statistics choise to use ip header length
+
+\- bug fixed \-
+- fix google chrome(version：138) view issue
+
 ## GRISM-6.2.250502
 \- function added \-
 - GRISM-A heartbeat submit function support
