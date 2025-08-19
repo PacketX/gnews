@@ -1,3 +1,8 @@
+## GRISM-6.4.250731
+\- function added \-
+- add netflow counter and eps support
+- interface ifidx support for netflow and statistics
+
 ## GRISM-6.3.250714
 \- function added \-
 - simplify XML save load function
