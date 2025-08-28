@@ -44,6 +44,7 @@ in Pps:  9,000,000 (64 bytes) (without flow table)
 cn103(8 cores)
 in Pps:  4,500,000 (64 bytes) (with flow table)
 in Pps: 11,000,000 (64 bytes) (without flow table)
+//can't get input drop statistics
 
 cn98(32 cores)
 in Pps: 12,000,000 (64 bytes) (with flow table)
