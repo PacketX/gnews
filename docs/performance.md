@@ -35,12 +35,10 @@ flowv6TableSize: 4000000
 - in Pps: 370,000 (with flow table)
 - in Pps: 500,000 (without flow table)
 
-
 ## DPDK test
 ```
 cn103(8 cores)
-in Pps:  1,300,000 (64 bytes) (with flow table)
-in Pps:  1,500,000 (64 bytes) (without flow table)
+TODO
 
 cn96(24 cores)
 in Pps:  4,500,000 (64 bytes) (with flow table)
