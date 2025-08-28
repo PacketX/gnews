@@ -46,8 +46,9 @@ in Pps:  4,500,000 (64 bytes) (with flow table)
 in Pps: 11,000,000 (64 bytes) (without flow table)
 
 cn98(32 cores)
-in Pps:  8,500,000 (64 bytes) (with flow table)
-in Pps: 14,000,000 (64 bytes) (without flow table)
+in Pps: 12,000,000 (64 bytes) (with flow table)
+in Pps: 30,000,000 (64 bytes) (without flow table)
+//drop a little packets but not cpu 100% yet
 
 cn106(24 cores)
 in Pps: 17,000,000 (64 bytes) (with flow table)
