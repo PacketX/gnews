@@ -47,10 +47,11 @@ in Pps: 11,000,000 (64 bytes) (without flow table)
 //can't get input drop statistics
 
 cn98(32 cores)
-in Pps: 14,000,000 (64 bytes) (with flow table)
+in Pps: 10,000,000 (64 bytes) (with flow table)
 in Pps: 32,000,000 (64 bytes) (without flow table)
+// need tx queue performance turing
 
 cn106(24 cores)
-in Pps: 17,000,000 (64 bytes) (with flow table)
+in Pps: 20,000,000 (64 bytes) (with flow table)
 in Pps: 65,000,000 (64 bytes) (without flow table)
 ```
