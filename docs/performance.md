@@ -37,14 +37,14 @@ flowv6TableSize: 4000000
 
 ## DPDK 
 ```
-cn96(24 cores)
-in Pps:  4,500,000 (64 bytes) (with flow table)
-in Pps:  9,000,000 (64 bytes) (without flow table)
-
 cn103(8 cores)
 in/out Pps:  4,500,000 (64 bytes) (with flow table)
 in/out Pps: 14,000,000 (64 bytes) (without flow table)
 //can't get input drop statistics
+
+cn96(24 cores)
+in/out Pps:  7,500,000 (64 bytes) (with flow table)
+in/out Pps:  15,000,000 (64 bytes) (without flow table)
 
 cn98(32 cores)
 in Pps: 10,000,000 (64 bytes) (with flow table)
