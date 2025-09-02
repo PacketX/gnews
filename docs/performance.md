@@ -47,9 +47,8 @@ in/out Pps:  7,500,000 (64 bytes) (with flow table)
 in/out Pps:  15,000,000 (64 bytes) (without flow table)
 
 cn98(32 cores)
-in Pps: 10,000,000 (64 bytes) (with flow table)
-in Pps: 32,000,000 (64 bytes) (without flow table)
-// need tx queue performance turing
+in/out Pps: 14,000,000 (64 bytes) (with flow table)
+in/out Pps: 32,000,000 (64 bytes) (without flow table)
 
 cn106(24 cores)
 in/out Pps: 20,000,000 (64 bytes) (with flow table)
