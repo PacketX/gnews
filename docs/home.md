@@ -1,7 +1,3 @@
-## GRISM-6.4.250902
-\- function added \-
-- add error packet handle
-
 ## GRISM-6.4.250731
 \- function added \-
 - add netflow counter and eps support
