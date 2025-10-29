@@ -1,3 +1,8 @@
+## GRISM-6.5.251029
+\- function added \-
+- upgrade sshd to 10.2p1 for security issue
+- update dbip country mmdb to 2025-10
+
 ## GRISM-6.4.250911
 \- bug fixed \-
 - www service unstable issue
