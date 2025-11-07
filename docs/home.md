@@ -1,3 +1,7 @@
+## GRISM- 6.5.251107
+\- bug fixed \-
+- fix L3/L4 IP/TCP/UDP packet error check handle
+
 ## GRISM-6.5.251029
 \- function added \-
 - upgrade sshd to 10.2p1 for security issue
