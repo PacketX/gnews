@@ -1,4 +1,14 @@
-## GRISM- 6.5.251107
+## GRISM-6.5.251230
+\- function added \-
+- add management mac address get
+- add num of runX.gdp to 16
+
+\- bug fixed \-
+- bug fix for decrypt function
+- bug fix for traffic-gen function
+- bug fix for sshd session link path error for first install
+
+## GRISM-6.5.251107
 \- bug fixed \-
 - fix L3/L4 IP/TCP/UDP packet error check handle
 
