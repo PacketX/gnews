@@ -1,6 +1,6 @@
 # Docs
 ## Manual
-- [PacketX-Grism-F2T12.pptx](https://github.com/PacketX/gnews/blob/master/docs/PacketX-Grism-F2T12.pptx)
+- [PacketX-Grism-F2T12.pptx](https://raw.githubusercontent.com/PacketX/gnews/master/docs/PacketX-Grism-F2T12.pptx)
 - [PacketX-Grism-T20.pptx](https://github.com/PacketX/gnews/blob/master/docs/PacketX-Grism-T20.pptx)
 - [PacketX-Grism-T12s.pptx](https://github.com/PacketX/gnews/blob/master/docs/PacketX-Grism-T12s.pptx)
 - [PacketX-Grism-G8s(en).pptx](https://github.com/PacketX/gnews/blob/master/docs/PacketX-Grism-G8s(en).pptx)
