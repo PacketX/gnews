@@ -1,3 +1,3 @@
 # gnews
 GRISM News
-- [Release Note](https://packetx.github.io/gnews/#/)
+- [GRISM News](https://packetx.github.io/gnews/#/)
