@@ -1,4 +1,6 @@
 # Docs
+## Link
+- [GRISM XML](https://packetx.gitbook.io/grism-xml/)
 ## Manual
 - [PacketX-Grism-F2T12.pptx](https://raw.githubusercontent.com/PacketX/gnews/master/docs/PacketX-Grism-F2T12.pptx)
 - [PacketX-Grism-T20.pptx](https://raw.githubusercontent.com/PacketX/gnews/master/docs/PacketX-Grism-T20.pptx)
