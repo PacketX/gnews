@@ -1,3 +1,15 @@
+## GRISM-6.5.260123
+\- function added \-
+- add hostname and lldpd support
+
+\- bug fixed \-
+- fix pcap replay MAX files
+- fix for get l2gre/vxlan correlation table fail
+- fix for l2gre and vxlan l2broadcast
+- fix for broadcast tunnel packet with vlan
+- fix for continue console login message
+- fix for dns query type log
+
 ## GRISM-6.5.251230
 \- function added \-
 - add management mac address get
