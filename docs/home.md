@@ -1,3 +1,11 @@
+## GRISM-6.5.260320
+\- function added \-
+- add management1 support
+
+\- bug fixed \-
+- fix packet duplication issue for modify tcp mss field
+- fix G8s(KOB3410) hardware phy port init issue
+
 ## GRISM-6.5.260123
 \- function added \-
 - add hostname and lldpd support
