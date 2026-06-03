@@ -10,7 +10,7 @@
 
 \- bug fixed \-
 - remove ssh dsa type key generate for G8s seldomly boot very slow
- 
+
 ## GRISM-6.5.260320
 \- function added \-
 - add management1 support
