@@ -1,3 +1,16 @@
+## GRISM-6.5.260601
+\- function added \-
+- add dns dynamic update parsing and syslog support
+- add dns opcode, rcode, remove dtype_num fields syslog support
+- add management link status filter for HA support
+- add grism xml chain in/out vlan tagging/stripping attribute support
+- add web service 10 minutes session timeout support
+- add vxlan strip data to packet tail and tag back to packet head support
+- add web GRISM XML delete run1-9 xml support
+
+\- bug fixed \-
+- remove ssh dsa type key generate for G8s seldomly boot very slow
+ 
 ## GRISM-6.5.260320
 \- function added \-
 - add management1 support
