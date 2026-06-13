@@ -1,3 +1,7 @@
+## GRISM-6.5.260612
+\- bug fixed \-
+- bug fix for dns name parsing issue
+
 ## GRISM-6.5.260601
 \- function added \-
 - add dns dynamic update parsing and syslog support
