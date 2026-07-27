@@ -1,3 +1,13 @@
+## GRISM-6.5.260715
+\- function added \-
+- more management interface setting support
+- add get dns qry name resp table dev api support
+
+\- bug fixed \-
+- fix config set issue
+- fix country iso counter issue
+- fix filter matchResult issue
+
 ## GRISM-6.5.260612
 \- bug fixed \-
 - bug fix for dns name parsing issue
