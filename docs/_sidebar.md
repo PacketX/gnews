@@ -1,5 +1,5 @@
 <!-- docs/_sidebar.md -->
-- Getting started
+- 開始使用
   - [Grism Studio](https://packetx.github.io/grism-studio/) 
-  - [Release Note](/)
-  - [Docs](docs.md)
+  - [版本資訊](/)
+  - [文件](docs.md)

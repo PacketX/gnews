@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
   <title>GRISM NEWS</title>
@@ -20,7 +20,18 @@
       loadNavbar: true,
       noEmoji: true,
       maxLevel: 4,
-      subMaxLevel: 2
+      subMaxLevel: 2,
+      // Chinese at the root, English under /en/.
+      // homepage names the file for "/" only, so /en/ needs an alias.
+      alias: {
+        '/en/': '/en/home.md',
+        '/en': '/en/home.md'
+      },
+      // the header title goes back to the home page of the language being read
+      nameLink: {
+        '/en/': '#/en/',
+        '/': '#/'
+      }
     }
   </script>
   <script src="//unpkg.com/docsify/lib/docsify.min.js"></script>
