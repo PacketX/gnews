@@ -1,3 +1,27 @@
+## GRISM-6.6.260930
+\- function added \-
+- new web interface, GRISM Studio: edit the packet pipeline visually, simulate a packet's path before submitting, live traffic and system status, configuration diff and rollback; English/Chinese, light/dark
+- packet capture now shows decoded packets as they are recorded
+- crash debugging: core dumps can be collected and downloaded from the web UI for analysis
+- filters accept nested expressions (and/or/not, several levels deep)
+- new TLS JA4/JA4S filter fields
+- new S1AP/NGAP cellid support
+- service management: report each service's version, start and stop services
+- sshd and the country database can be updated on their own, without a full firmware update
+- statistics counters and sessions are kept across a configuration reload
+- read-only accounts
+- web idle logout raised from 10 to 30 minutes
+
+\- bug fixed \-
+- fix inner packets of VXLAN/GRE tunnels not being parsed on non-correlation ports, which silently disabled filters written against inner fields
+- fix inner packets not being parsed on a LOOP ingress
+- fix the packet engine possibly dying after a configuration submit
+- fix the wrong VLAN counter being used for a QinQ output
+- fix filter "and" condition evaluation
+- fix syslog filters not accepting the new expression form
+- fix login account privilege handling
+- fix an update check failing without saying why
+
 ## GRISM-6.5.260715
 \- function added \-
 - more management interface settings
