@@ -1,4 +1,30 @@
-## GRISM-6.6.260930
+## GRISM-7.6.260930.3
+\- function added \-
+- new web interface, GRISM Studio: edit the packet pipeline visually, simulate a packet's path before submitting, live traffic and system status, configuration diff and rollback; English/Chinese, light/dark
+- packet capture now shows decoded packets as they are recorded
+- crash debugging: core dumps can be collected and downloaded from the web UI, and the packet engine can be restarted from there too
+- a firmware update now restarts the affected services instead of rebooting
+- new TLS JA4/JA4S filter fields
+- service management: report each service's version, start and stop services
+- front switch (Q16) status and restart
+- system status now lists hugepages and the flow tables separately as reserved memory, and computes usage with them subtracted
+- sshd and the country database can be updated on their own, without a full firmware update
+- statistics counters and sessions are kept across a configuration reload
+- read-only accounts
+- web idle logout raised from 10 to 30 minutes
+
+\- bug fixed \-
+- fix inner packets of VXLAN/GRE tunnels not being parsed on non-correlation ports, which silently disabled filters written against inner fields
+- fix inner packets not being parsed on a LOOP ingress
+- fix the packet engine possibly dying after a configuration submit
+- fix the timezone used for times shown in the web UI
+- fix syslog filters not accepting the new expression form
+- fix the TLS version read for JA4S
+- fix login account privilege handling
+- fix an update check failing without saying why
+- remove the sample mapping rows from the shipped configuration
+
+## GRISM-6.6.260930.4
 \- function added \-
 - new web interface, GRISM Studio: edit the packet pipeline visually, simulate a packet's path before submitting, live traffic and system status, configuration diff and rollback; English/Chinese, light/dark
 - packet capture now shows decoded packets as they are recorded
