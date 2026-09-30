@@ -10,7 +10,6 @@
 - system status now lists hugepages and the flow tables separately as reserved memory, and computes usage with them subtracted
 - sshd and the country database can be updated on their own, without a full firmware update
 - statistics counters and sessions are kept across a configuration reload
-- read-only accounts
 - web idle logout raised from 10 to 30 minutes
 
 \- bug fixed \-
@@ -35,7 +34,6 @@
 - service management: report each service's version, start and stop services
 - sshd and the country database can be updated on their own, without a full firmware update
 - statistics counters and sessions are kept across a configuration reload
-- read-only accounts
 - web idle logout raised from 10 to 30 minutes
 
 \- bug fixed \-
