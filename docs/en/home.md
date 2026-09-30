@@ -1,4 +1,4 @@
-## GRISM-7.6.260930.3
+## GRISM-7.6.260930.4
 \- function added \-
 - new web interface, GRISM Studio: edit the packet pipeline visually, simulate a packet's path before submitting, live traffic and system status, configuration diff and rollback; English/Chinese, light/dark
 - packet capture now shows decoded packets as they are recorded
