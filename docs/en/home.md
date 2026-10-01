@@ -1,3 +1,28 @@
+## GRISM-7.6.261001.1
+\- bug fixed \-
+- fix grism_watcher sometimes not restarting after an online update. That service is what applies firmware updates, so losing it meant every later update silently did nothing, with no error shown; only a reboot recovered it. The restart is now verified and retried, and a failure is written to the log
+- fix core dumps being pruned only when the web UI listed them; they are pruned at startup as well now
+- fix the overview's chain diagram stacking its output ports on top of each other
+- fix a long ingress port list overflowing its node on the chain canvas
+- fix several port pickers not showing the port descriptions (deduplication, SD-WAN, heartbeat, log exporters, filter conditions, simulator)
+- tidy the filters page layout when no filter is defined
+
+\- item changed \-
+- the session TCP/UDP port tables now say they count ports below 1024 only
+- the export page keeps 10 pre-submit snapshots instead of 5
+
+## GRISM-6.6.261001.1
+\- bug fixed \-
+- fix core dumps being pruned only when the web UI listed them; they are pruned at startup as well now
+- fix the overview's chain diagram stacking its output ports on top of each other
+- fix a long ingress port list overflowing its node on the chain canvas
+- fix several port pickers not showing the port descriptions (deduplication, SD-WAN, heartbeat, log exporters, filter conditions, simulator)
+- tidy the filters page layout when no filter is defined
+
+\- item changed \-
+- the session TCP/UDP port tables now say they count ports below 1024 only
+- the export page keeps 10 pre-submit snapshots instead of 5
+
 ## GRISM-7.6.260930.4
 \- function added \-
 - new web interface, GRISM Studio: edit the packet pipeline visually, simulate a packet's path before submitting, live traffic and system status, configuration diff and rollback; English/Chinese, light/dark
