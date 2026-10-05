@@ -1,43 +1,37 @@
 ## GRISM-7.6.261005.4
 \- function added \-
-- QUIC reassembly: with "QUIC Initial reassembly" on (Settings → packet processing, off by default), QUIC Initial packets are decrypted and the TLS ClientHello inside them reassembled, so the TLS filter fields (ssl.server_name, tls.handshake.ja4 and others) and the DPI SSL syslog cover QUIC connections too; their JA4 starts with q (#767 #751)
-- the traffic-gen input takes a duration: set a number of seconds and it stops generating when the time is up (#774)
-- the replayPcap input can pick several files at once, with select-all and shift-click ranges
+- TLS filters and JA4 for QUIC connections (Settings → packet processing, off by default)
+- traffic-gen can run for a set duration
+- replayPcap can pick several files at once
 
 \- bug fixed \-
-- fix three JA4 deviations: a TLS 1.3 middlebox-compatibility hello (ChangeCipherSpec in front of the ClientHello) was not parsed; ja4_c kept GREASE values from signature_algorithms; ALPN now follows the spec's general rule (first and last character of the first ALPN value, hex digits when not alphanumeric) where any uncommon name used to come out as 00
-- fix a live load of a big filter list that did not fit in memory switching to half-built tables, which left every big-list filter matching nothing at once; a failed load now keeps the lists in use and logs why, and the new list takes effect at the next full reload if it fits then
-- fix a full reload retrying without end, and wedging, when a big list did not fit; everything else now loads and only that filter is left empty, with the reason logged
-- fix a setting introduced by a later release having no effect when changed on a device that was updated to it (the page accepted it, while the config file and the engine kept the default)
-- fix clearing the counters not clearing a physical port's packet and byte counts (they showed zero for a moment, then the old totals again)
+- fix JA4 calculation issues
+- improve the stability of loading and updating big filter lists
+- fix some settings not taking effect after being changed
+- fix a counter-clearing issue
 
 \- item changed \-
-- the chain list shows a chain's whole ingress (consecutive ports merged into ranges), and the hover merges consecutive ports with the same description
-- port pickers no longer offer disabled ports
-- the flow table size settings say how many sessions they actually hold
-- the export page shows how many other config files there are as soon as it opens
-- the advanced group of a packet-processing chain opens by itself when it holds inputs, outputs or actions
+- improve how ports are shown and picked
+- the flow table size settings show how many sessions they hold
+- usability improvements on the export and packet-processing pages
 
 
 ## GRISM-6.6.261005.6
 \- function added \-
-- QUIC reassembly: with "QUIC Initial reassembly" on (Settings → packet processing, off by default), QUIC Initial packets are decrypted and the TLS ClientHello inside them reassembled, so the TLS filter fields (ssl.server_name, tls.handshake.ja4 and others) and the DPI SSL syslog cover QUIC connections too; their JA4 starts with q (#767 #751)
-- the traffic-gen input takes a duration: set a number of seconds and it stops generating when the time is up (#774)
-- the replayPcap input can pick several files at once, with select-all and shift-click ranges
+- TLS filters and JA4 for QUIC connections (Settings → packet processing, off by default)
+- traffic-gen can run for a set duration
+- replayPcap can pick several files at once
 
 \- bug fixed \-
-- fix three JA4 deviations: a TLS 1.3 middlebox-compatibility hello (ChangeCipherSpec in front of the ClientHello) was not parsed; ja4_c kept GREASE values from signature_algorithms; ALPN now follows the spec's general rule (first and last character of the first ALPN value, hex digits when not alphanumeric) where any uncommon name used to come out as 00
-- fix a live load of a big filter list that did not fit in memory switching to half-built tables, which left every big-list filter matching nothing at once; a failed load now keeps the lists in use and logs why, and the new list takes effect at the next full reload if it fits then
-- fix a full reload retrying without end, and wedging, when a big list did not fit; everything else now loads and only that filter is left empty, with the reason logged
-- fix a setting introduced by a later release having no effect when changed on a device that was updated to it (the page accepted it, while the config file and the engine kept the default)
-- fix a replayed packet's tail being overwritten with the next packet's bytes, which made JA4 and other parsing of a frame's end come out right on one replay and wrong on the next
+- fix JA4 calculation issues
+- improve the stability of loading and updating big filter lists
+- fix some settings not taking effect after being changed
+- fix a packet replay issue
 
 \- item changed \-
-- the chain list shows a chain's whole ingress (consecutive ports merged into ranges), and the hover merges consecutive ports with the same description
-- port pickers no longer offer disabled ports
-- the flow table size settings say how many sessions they actually hold
-- the export page shows how many other config files there are as soon as it opens
-- the advanced group of a packet-processing chain opens by itself when it holds inputs, outputs or actions
+- improve how ports are shown and picked
+- the flow table size settings show how many sessions they hold
+- usability improvements on the export and packet-processing pages
 
 
 ## GRISM-7.6.261001.2
