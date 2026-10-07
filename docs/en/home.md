@@ -1,13 +1,15 @@
-## GRISM-7.6.261007.3
+## GRISM-7.6.261007.5
 \- function added \-
 - the MEC table shows each UE's uplink and downlink traffic, and sorts by clicking a column
 - the management services can be limited to allowed IPs (Settings → Services)
+- System status shows the main current settings
 - the system log can be cleared
 - replayPcap plays nanosecond-resolution pcaps
 
 \- bug fixed \-
 - fix occasional JA4 calculation errors
 - fix a packet replay issue
+- fix services not restarting after an update on some models
 - improve the stability of uploading large pcap files
 
 \- item changed \-
@@ -16,10 +18,11 @@
 - display improvements on the export page and the MEC table
 
 
-## GRISM-6.6.261007.3
+## GRISM-6.6.261007.5
 \- function added \-
 - the MEC table shows each UE's uplink and downlink traffic, and sorts by clicking a column
 - the management services can be limited to allowed IPs (Settings → Services)
+- System status shows the main current settings
 - the system log can be cleared
 - replayPcap plays nanosecond-resolution pcaps
 
