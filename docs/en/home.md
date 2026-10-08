@@ -1,3 +1,36 @@
+## GRISM-7.6.261008.1
+\- function added \-
+- alerts on CPU, memory, disks, temperatures, fans, services and the packet engine (Settings → Alerts)
+- alerts can be sent as SNMP traps and to syslog
+- four account levels: view, operator, config and admin (Settings → Login authentication)
+
+\- bug fixed \-
+- fix SNMP traps not being sent
+
+\- item changed \-
+- OpenSSH updated to 10.6p1
+- Settings shows the login authentication in use and when settings are being applied
+- the SNMP system notification service can be switched in Settings → Services, off by default
+- System status is lighter to read
+
+
+## GRISM-6.6.261008.4
+\- function added \-
+- alerts on CPU, memory, disks, temperatures, fans, services and the packet engine (Settings → Alerts)
+- alerts can be sent as SNMP traps and to syslog
+- four account levels: view, operator, config and admin (Settings → Login authentication)
+
+\- bug fixed \-
+- fix SNMP traps not being sent
+- fix the manual SSH component update failing
+
+\- item changed \-
+- OpenSSH updated to 10.6p1
+- Settings shows the login authentication in use and when settings are being applied
+- the SNMP system notification service can be switched in Settings → Services, off by default
+- System status is lighter to read, and lists each disk once
+
+
 ## GRISM-7.6.261007.5
 \- function added \-
 - the MEC table shows each UE's uplink and downlink traffic, and sorts by clicking a column
