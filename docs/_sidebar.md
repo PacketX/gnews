@@ -6,3 +6,4 @@
   - [文件](docs.md)
 - 技術筆記
   - [多核心下的 strtok](tech-strtok.md)
+  - [5G 測試環境與 MEC breakout](tech-5g-mec.md)
