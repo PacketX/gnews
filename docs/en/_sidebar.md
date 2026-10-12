@@ -6,4 +6,4 @@
   - [Docs](/en/docs.md)
 - Tech notes
   - [strtok on many cores](/en/tech-strtok.md)
-  - [A 5G test bed and MEC breakout](/en/tech-5g-mec.md)
+  - [A 5G and 4G/NSA test bed and MEC breakout](/en/tech-5g-mec.md)

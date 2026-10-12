@@ -1,10 +1,10 @@
-# 用 UERANSIM + Open5GS 架 5G 測試環境,驗證 GRISM 的 MEC breakout
+# 用 UERANSIM / srsRAN + Open5GS 架 5G 與 4G/NSA 測試環境,驗證 GRISM 的 MEC breakout
 
 ## 目的
 
-在一台 Linux VM 上同時跑 5G 核心網(Open5GS)與基地台/手機模擬器(UERANSIM),讓 N2(NGAP over SCTP)與 N3(GTP-U)**真的走實體線**經過 GRISM 的 inline 鏈結,再接一台邊緣主機,驗證 MEC breakout:指定 cell 的 UE 存取邊緣服務時,GRISM 去掉 GTP 直接送到邊緣,回程再封裝回 gNB;其餘流量照走核心網,核心網完全看不到被 breakout 的部分。
+在一台 Linux VM 上同時跑核心網(Open5GS,5GC 與 EPC 都有)與基地台/手機模擬器(5G SA 用 UERANSIM,4G 與 NSA 用 srsRAN 4G),讓 N2/S1-MME(NGAP、S1AP over SCTP)與 N3/S1-U(GTP-U)**真的走實體線**經過 GRISM 的 inline 鏈結,再接一台邊緣主機,驗證 MEC breakout:指定 cell 的 UE 存取邊緣服務時,GRISM 去掉 GTP 直接送到邊緣,回程再封裝回基地台;其餘流量照走核心網,核心網完全看不到被 breakout 的部分。
 
-本文用的機器:GRISM G8S-MEC(P4 接 gNB 側、P5 接核心網側、P3 接邊緣主機)與一台 Ubuntu 24.04 VM(8 核、16 GB,四張網卡)。
+本文用的機器:GRISM G8S-MEC(P4 接基地台側、P5 接核心網側、P3 接邊緣主機)與一台 Ubuntu 24.04 VM(8 核、16 GB,四張網卡)。
 
 ## 架構
 
@@ -15,10 +15,13 @@ VM                                                        GRISM G8S-MEC
 │   ens19  10.5.0.1  gNB A        │───── P4 ──┐
 │          10.5.0.11 gNB B        │           │  inline chain
 │          10.5.0.12 gNB C        │           │  P4 <-> P5
+│          10.5.0.21 eNB (LTE+NR) │           │
 │          UE1 UE2 UE3 (uesimtunN)│           │
+│          UE4 (tun_srsue)        │           │
 │                                 │           │
 │ [主機]                           │           │
 │   ens20  10.5.0.2  AMF(N2) UPF(N3)│───── P5 ──┘
+│          10.5.0.3  SGW-U(S1-U)  MME(S1-MME) 也在 10.5.0.2
 │   ogstun 10.45.0.1/16 ─ NAT ─ ens18 ─ 網際網路
 │                                 │
 │ [edge namespace]                │
@@ -28,8 +31,8 @@ VM                                                        GRISM G8S-MEC
 
 | 介面 | namespace | 位址 | 角色 | GRISM 埠 |
 |---|---|---|---|---|
-| ens19 | `ran` | 10.5.0.1 / .11 / .12 | 三個 gNB 的 N2/N3 位址,UE 也在這裡 | P4 |
-| ens20 | 主機 | 10.5.0.2 | Open5GS AMF 的 NGAP、UPF 的 GTP-U | P5 |
+| ens19 | `ran` | 10.5.0.1 / .11 / .12,10.5.0.21 | 三個 gNB 與一個 eNB 的 N2/S1 位址,UE 也在這裡 | P4 |
+| ens20 | 主機 | 10.5.0.2、10.5.0.3 | AMF 的 NGAP 與 MME 的 S1AP、UPF 的 GTP-U(.2);SGW-U 的 GTP-U(.3) | P5 |
 | ens21 | `edge` | 10.45.255.254/16 | 邊緣主機(HTTP 服務) | P3 |
 | ens18 | 主機 | 192.168.x.x | 管理與 UE 的 NAT 出口 | — |
 
@@ -135,6 +138,31 @@ UE 註冊成功後會在 `ran` 裡建立 `uesimtun0..2`(10.45.0.x)。要讓 `ran
 ip netns exec edge python3 -m http.server 80 --bind 10.45.255.254 --directory /srv/edge
 ```
 
+## 4G / NSA:srsRAN 4G 的 eNB 加一個 NR cell
+
+UERANSIM 只做 5G SA。4G 與 NSA(EN-DC)用 [srsRAN 4G](https://github.com/srsran/srsRAN_4G) 的 srsENB + srsUE,射頻以 ZMQ 模擬、不需要 SDR;NSA 是 srsENB 多帶一個 NR cell、srsUE 開啟 NR RAT,照 srsRAN 的「5G NSA over ZMQ」應用筆記設定。
+
+編譯(release 23.11)在這台 VM 上有兩個必要選項:GCC 13 會把 `array-bounds` 誤報當錯誤,要 `-DENABLE_WERROR=OFF`;srsRAN 預設用 `-march=skylake`,編出的程式在沒有 AVX 的 CPU 上**一啟動就 SIGILL**,要 `-DGCC_ARCH=x86-64-v2`(這顆 CPU 有 SSE4.2/POPCNT、沒有 AVX)。
+
+```bash
+cmake -DGCC_ARCH=x86-64-v2 -DENABLE_WERROR=OFF -DENABLE_AVX=OFF -DENABLE_AVX2=OFF -DENABLE_FMA=OFF -DENABLE_ZEROMQ=ON ..
+make -j8 srsenb srsue
+```
+
+設定從 `srsenb/*.conf.example`、`srsue/ue.conf.example` 複製修改,全部在 `ran` namespace 裡執行:
+
+| 檔案 | 改動 |
+|---|---|
+| `enb.conf` | `mcc=999 mnc=70`、`mme_addr=10.5.0.2`、`gtp_bind_addr=s1c_bind_addr=10.5.0.21`、`n_prb=50`;`[rf] device_name=zmq`,`device_args=fail_on_disconnect=true,tx_port0=tcp://*:2000,rx_port0=tcp://localhost:2001,tx_port1=tcp://*:2100,rx_port1=tcp://localhost:2101,id=enb,base_srate=23.04e6`(埠 0 是 LTE、埠 1 是 NR) |
+| `rr.conf` | LTE cell 維持範例(`cell_id=0x01`、`tac=0x0007`、`dl_earfcn=3350`);`nr_cell_list` 加一個 NR cell:`rf_port=1; cell_id=0x02; tac=0x0007; pci=500; root_seq_idx=204; dl_arfcn=368500; band=3;` |
+| `ue.conf` | `[rf]` 對應的 ZMQ 兩組埠;`[rat.eutra] dl_earfcn=3350 nof_carriers=1`;`[rat.nr] bands=3,78 nof_carriers=1`;`[rrc] release=15`;`[usim] imsi=999700000000004`,金鑰同 UERANSIM 範例 |
+
+核心網這邊只多兩件事:`mme.yaml` 的 `s1ap` 綁 10.5.0.2、`tai` 加 TAC 7;`sgwu.yaml` 的 `gtpu` 綁 10.5.0.3(ens20 上多加的位址,因為 UPF 已佔 10.5.0.2:2152)。HSS 讀的是同一個 MongoDB,`open5gs-dbctl add` 的用戶 4G/5G 都能用。
+
+兩個經驗:**先啟動 eNB 再啟動 UE**——UE 單獨重啟會卡在「Attaching UE...」(ZMQ 的連線狀態),eNB 一起重啟就正常;以及 `apt install` 函式庫時 needrestart 會順手重啟 Open5GS 的服務,SMF 一重啟所有 PDU session 都沒了、UPF 對舊 TEID 回 GTP-U Error Indication,症狀是全部 UE 同時斷線——apt 之後把基地台與 UE 重新註冊即可。
+
+attach 成功後 UE 拿到 `tun_srsue`(10.45.0.x,與 5G 同一個位址池);console 出現「RRC NR reconfiguration successful」與 NR cell 的隨機存取,就是 EN-DC 已建立。
+
 ## GRISM 設定
 
 ### 1. 開啟 MEC 相關功能
@@ -193,6 +221,8 @@ ip netns exec edge python3 -m http.server 80 --bind 10.45.255.254 --directory /s
 
 `gtp.data.by.s1ap.CellIdentity` 比的是 NGAP 裡 36 bit 的 NR Cell Identity **取高 N 個 bit** 的值,N 預設 26(設定頁 MEC 卡片的 `nrCellIdentityBits` 可改,1–32)。gNB A 的 NCI `0x001000000` 在 26 bit 時是 `0x001000000 >> 10 = 16384`;B、C 分別是 32768、49152。設成 32 時得到的就是 32 bit 的 gNB ID(A = 1048576)。
 
+4G 走 S1AP:取 28 bit ECI 的高 20 bit,也就是 eNB ID。srsENB 的 `enb_id=0x19B` → 篩選值 411。4G 與 5G 的 session 在同一張表裡,同一個設定檔可以同時寫兩種 cell。
+
 引擎學到的 session 可從 Studio 的 MEC 表或 `GET /grism/task/get_s1ap_items` 看到:每個 UE 的位址、gNB、`cellid`、兩方向 TEID。設定 cell 策略前先用它確認 cell 值。
 
 ## 測試結果
@@ -210,8 +240,31 @@ ip netns exec edge python3 -m http.server 80 --bind 10.45.255.254 --directory /s
 
 兩種設定下三個 UE 上網都正常;F4 的計數只在放行的那個 cell 的封包上命中。把 `nrCellIdentityBits` 改成 32、F4 改成 1048576,結果相同。
 
+**4G / NSA**:srsUE attach 成功(MME「Attach complete」)、EN-DC 建立(NR 重設定與 NR 隨機存取各 3 次),UE 經 S1-U 上網正常。GRISM 的 session 表多出一筆 4G 的:`UE 10.45.0.7 | 基地台 10.5.0.21 | MME-UE-S1AP-ID 7 | eNB-UE-S1AP-ID 2 | cellid 411`;eNB 的 UE 編號與 gNB 的編號相同時(都從 1、2 開始)也各自正確,因為表是用「編號 + 基地台位址」當 key。S1AP 抓包:InitialUEMessage、InitialContextSetupRequest(SGW-U 10.5.0.3、TEID 0x2d75)、ICS Response 與 UplinkNASTransport 合併在同一個 SCTP 封包的三個 DATA chunk,都解析正確、沒有分段。
+
+| 設定 | LTE UE(cell 411) | UE1(cell A) | UE2(cell B) |
+|---|---|---|---|
+| F4 = 411(只放行 LTE cell) | 邊緣 HTTP 200 | 逾時 | 逾時 |
+| F4 = 16384(只放行 cell A) | 逾時 | 邊緣 HTTP 200 | 逾時 |
+
+## 在 GRISM 做 breakout,相較於邊緣 UPF 的優勢
+
+3GPP 的標準做法是在邊緣部署一個 UPF(5G 用 UL-CL/branching point 分流,4G 用本地 S-GW/P-GW 或 LIPA/SIPTO),由 SMF 下 N4 規則決定哪些流量就地落地。GRISM 的做法是把一台 inline 的封包處理設備放在基地台與核心網之間,從訊令學會每個 UE 的 cell 與隧道,再依設定把特定流量解封裝後交給邊緣。兩者的差別:
+
+| | 邊緣 UPF | GRISM MEC breakout |
+|---|---|---|
+| 對核心網的要求 | SMF/PCF 要支援 UL-CL、DNAI、流量導向規則,並接受新的 UPF(N4),通常是一個與電信商的整合專案 | **核心網零改動**:不需 N4、不需 SMF 認識它,任何廠牌的核心網都適用 |
+| 4G / 5G / NSA | 各代做法不同(本地 UPF vs. 本地 S/P-GW),NSA 還要看錨點在哪 | 同一台設備同時處理 S1AP 與 NGAP,4G、5G、NSA 一套設定 |
+| 分流條件 | 以 DNN/切片/UE 位址為主,cell 層級的條件要靠 PCF 與位置回報 | 直接用 cell、基地台、UE 位址範圍、目的地等封包層的條件組合,也能與其他篩選器(L4–L7、IMSI 等)AND/OR |
+| 部署位置與延遲 | 要有一個 UPF 的落點,流量在 UPF 內再做一次 GTP 處理與路由 | 在聚合點就地去掉 GTP,以 ARP 解析邊緣 MAC 後直接 L2 交付,路徑上少一跳 |
+| 失效行為 | UPF 故障即斷服務 | inline 設備故障時可由 bypass 繼電器直通(G8S/T12S/G8 皆有),或鏈結設定成預設照走核心網 |
+| 可見度 | 需另外佈署探針 | 同一台設備就有每個 UE session 的上下行封包/位元組(`get_s1ap_items`)、篩選器計數、即時側錄、syslog |
+| 建置時間 | 數週到數月 | 本文的整套設定是一份 40 行的 XML |
+
+要誠實說明的限制:被 breakout 的流量不經過核心網,因此核心網的計費與合法監聽看不到它(這通常正是企業專網或校園網要的,但電信商環境要先談清楚);GRISM 必須同時看得到控制面與使用者面(N2 與 N3、S1-MME 與 S1-U 走同一台設備);UE 在基地台之間換手時,靠的是 GRISM 的 path switch / handover 追蹤表,而不是標準的 session 錨點。UE 的 IP 是從使用者面學的、cell 是從 NGAP/S1AP 的 IE 讀的,所以 NAS 加密與否都不影響。
+
 ## 操作備忘
 
-- 整套用 systemd 管理:接線(oneshot)→ `open5gs-amfd/upfd`(drop-in 讓它們等接線完成,否則綁不到 10.5.0.2)→ `ueransim-gnb@A/B/C` → `ueransim-ue@1/2/3` → 流量產生器。UERANSIM 的 gNB 開機時只連一次 AMF,連不上不會重試,用一個每分鐘檢查「沒完成 NG Setup 就重啟」的 timer 補上。
+- 整套用 systemd 管理:接線(oneshot)→ `open5gs-amfd/upfd`(drop-in 讓它們等接線完成,否則綁不到 10.5.0.2)→ `ueransim-gnb@A/B/C` → `ueransim-ue@1/2/3`、`srsenb` → `srsue` → 流量產生器。UERANSIM 的 gNB 開機時只連一次 AMF,連不上不會重試,用一個每分鐘檢查「沒完成 NG Setup 就重啟」的 timer 補上;srsUE 要在 eNB 之後啟動。
 - `journalctl -u 'ueransim-*' -f` 看註冊與 PDU session;`get_s1ap_items` 看 GRISM 學到的 session;介面流量頁看 P3/P4/P5。
 - 切換策略就是重送 run.xml(`submitxml`),引擎重載約一秒,UE 的 session 不受影響。

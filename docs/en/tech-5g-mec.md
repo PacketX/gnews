@@ -1,10 +1,10 @@
-# A 5G test bed with UERANSIM and Open5GS, and GRISM's MEC breakout under test
+# A 5G and 4G/NSA test bed with UERANSIM, srsRAN and Open5GS, and GRISM's MEC breakout under test
 
 ## Goal
 
-Run a 5G core (Open5GS) and a base-station/handset simulator (UERANSIM) on one Linux VM, with N2 (NGAP over SCTP) and N3 (GTP-U) **really crossing a wire** through a GRISM inline chain, then add an edge host and verify MEC breakout: when a UE in a chosen cell reaches the edge service, GRISM strips the GTP and hands the packet to the edge directly, wrapping the reply back towards the gNB; everything else goes on to the core, which never sees the broken-out part.
+Run a core (Open5GS: both the 5GC and the EPC) and base-station/handset simulators (UERANSIM for 5G SA, srsRAN 4G for LTE and NSA) on one Linux VM, with N2/S1-MME (NGAP and S1AP over SCTP) and N3/S1-U (GTP-U) **really crossing a wire** through a GRISM inline chain, then add an edge host and verify MEC breakout: when a UE in a chosen cell reaches the edge service, GRISM strips the GTP and hands the packet to the edge directly, wrapping the reply back towards the base station; everything else goes on to the core, which never sees the broken-out part.
 
-The machines: a GRISM G8S-MEC (P4 on the gNB side, P5 on the core side, P3 to the edge host) and an Ubuntu 24.04 VM (8 cores, 16 GB, four NICs).
+The machines: a GRISM G8S-MEC (P4 on the base-station side, P5 on the core side, P3 to the edge host) and an Ubuntu 24.04 VM (8 cores, 16 GB, four NICs).
 
 ## Layout
 
@@ -15,10 +15,13 @@ VM                                                        GRISM G8S-MEC
 │   ens19  10.5.0.1  gNB A        │───── P4 ──┐
 │          10.5.0.11 gNB B        │           │  inline chain
 │          10.5.0.12 gNB C        │           │  P4 <-> P5
+│          10.5.0.21 eNB (LTE+NR) │           │
 │          UE1 UE2 UE3 (uesimtunN)│           │
+│          UE4 (tun_srsue)        │           │
 │                                 │           │
 │ [host]                          │           │
 │   ens20  10.5.0.2  AMF(N2) UPF(N3)│───── P5 ──┘
+│          10.5.0.3  SGW-U(S1-U)  MME(S1-MME) on 10.5.0.2 too
 │   ogstun 10.45.0.1/16 ─ NAT ─ ens18 ─ Internet
 │                                 │
 │ [edge namespace]                │
@@ -28,8 +31,8 @@ VM                                                        GRISM G8S-MEC
 
 | Interface | namespace | Address | Role | GRISM port |
 |---|---|---|---|---|
-| ens19 | `ran` | 10.5.0.1 / .11 / .12 | N2/N3 addresses of the three gNBs; the UEs live here too | P4 |
-| ens20 | host | 10.5.0.2 | Open5GS AMF (NGAP) and UPF (GTP-U) | P5 |
+| ens19 | `ran` | 10.5.0.1 / .11 / .12, 10.5.0.21 | N2/S1 addresses of the three gNBs and the eNB; the UEs live here too | P4 |
+| ens20 | host | 10.5.0.2, 10.5.0.3 | AMF (NGAP) and MME (S1AP), UPF (GTP-U) on .2; SGW-U (GTP-U) on .3 | P5 |
 | ens21 | `edge` | 10.45.255.254/16 | the edge host (an HTTP service) | P3 |
 | ens18 | host | 192.168.x.x | management, and the NAT exit for UE traffic | — |
 
@@ -135,6 +138,31 @@ The edge host is one line of Python:
 ip netns exec edge python3 -m http.server 80 --bind 10.45.255.254 --directory /srv/edge
 ```
 
+## 4G / NSA: an srsRAN 4G eNB with an NR cell
+
+UERANSIM does 5G SA only. For LTE and NSA (EN-DC) the bed uses [srsRAN 4G](https://github.com/srsran/srsRAN_4G)'s srsENB and srsUE with ZMQ in place of radios -- no SDR needed; NSA is srsENB carrying an extra NR cell and srsUE with its NR RAT on, as in srsRAN's "5G NSA over ZMQ" application note.
+
+Building release 23.11 on this VM needs two options: GCC 13's `array-bounds` false positives are errors unless `-DENABLE_WERROR=OFF`, and srsRAN defaults to `-march=skylake`, whose binary **dies with SIGILL at start** on a CPU without AVX, so `-DGCC_ARCH=x86-64-v2` (this CPU has SSE4.2/POPCNT, no AVX).
+
+```bash
+cmake -DGCC_ARCH=x86-64-v2 -DENABLE_WERROR=OFF -DENABLE_AVX=OFF -DENABLE_AVX2=OFF -DENABLE_FMA=OFF -DENABLE_ZEROMQ=ON ..
+make -j8 srsenb srsue
+```
+
+The configs start from `srsenb/*.conf.example` and `srsue/ue.conf.example`; everything runs inside the `ran` namespace:
+
+| File | Changes |
+|---|---|
+| `enb.conf` | `mcc=999 mnc=70`, `mme_addr=10.5.0.2`, `gtp_bind_addr=s1c_bind_addr=10.5.0.21`, `n_prb=50`; `[rf] device_name=zmq`, `device_args=fail_on_disconnect=true,tx_port0=tcp://*:2000,rx_port0=tcp://localhost:2001,tx_port1=tcp://*:2100,rx_port1=tcp://localhost:2101,id=enb,base_srate=23.04e6` (port 0 is LTE, port 1 NR) |
+| `rr.conf` | the LTE cell as in the example (`cell_id=0x01`, `tac=0x0007`, `dl_earfcn=3350`); one NR cell in `nr_cell_list`: `rf_port=1; cell_id=0x02; tac=0x0007; pci=500; root_seq_idx=204; dl_arfcn=368500; band=3;` |
+| `ue.conf` | the matching two ZMQ port pairs in `[rf]`; `[rat.eutra] dl_earfcn=3350 nof_carriers=1`; `[rat.nr] bands=3,78 nof_carriers=1`; `[rrc] release=15`; `[usim] imsi=999700000000004` with UERANSIM's sample keys |
+
+Two things on the core side: `mme.yaml` binds `s1ap` to 10.5.0.2 and lists TAC 7 in `tai`; `sgwu.yaml` binds `gtpu` to 10.5.0.3 (an extra address on ens20, since the UPF already holds 10.5.0.2:2152). The HSS reads the same MongoDB, so a subscriber from `open5gs-dbctl add` serves 4G and 5G alike.
+
+Two lessons: **start the eNB before the UE** -- a UE restarted on its own hangs at "Attaching UE..." (ZMQ connection state) and is fine when the eNB restarts with it; and `apt install` of libraries makes needrestart restart Open5GS daemons, after which every PDU session is gone (the SMF forgets them, the UPF answers the old TEIDs with GTP-U Error Indication): every UE drops at once, and re-registering base stations and UEs after any apt run is the cure.
+
+Once attached, the UE holds `tun_srsue` (10.45.0.x, from the same pool as the 5G UEs); "RRC NR reconfiguration successful" and a random access on the NR cell on its console are EN-DC in place.
+
 ## GRISM configuration
 
 ### 1. Turn the MEC features on
@@ -193,6 +221,8 @@ What each part does:
 
 `gtp.data.by.s1ap.CellIdentity` compares the **top N bits** of the 36-bit NR Cell Identity from NGAP; N is 26 unless `nrCellIdentityBits` on the MEC card says otherwise (1–32). gNB A's NCI `0x001000000` at 26 bits is `0x001000000 >> 10 = 16384`; B and C are 32768 and 49152. At 32 bits the value is the 32-bit gNB ID (A = 1048576).
 
+4G comes through S1AP: the top 20 bits of the 28-bit ECI, which is the eNB ID. srsENB's `enb_id=0x19B` gives a filter value of 411. 4G and 5G sessions share one table, so one configuration can name cells of both kinds.
+
 The sessions the engine has learned are visible in the Studio's MEC table or from `GET /grism/task/get_s1ap_items`: each UE's address, its gNB, `cellid` and both TEIDs. Check the cell values there before writing a cell policy.
 
 ## Results
@@ -210,8 +240,31 @@ The sessions the engine has learned are visible in the Studio's MEC table or fro
 
 Under both policies all three UEs still reach the internet, and F4 only counts hits on the allowed cell's packets. With `nrCellIdentityBits` set to 32 and F4 to 1048576 the outcome is the same.
 
+**4G / NSA**: srsUE attached (the MME logged "Attach complete"), EN-DC came up (three NR reconfigurations and three NR random accesses), and the UE browsed through S1-U. GRISM's table gained a 4G row: `UE 10.45.0.7 | base station 10.5.0.21 | MME-UE-S1AP-ID 7 | eNB-UE-S1AP-ID 2 | cellid 411`; an eNB numbering its UEs 1, 2 next to gNBs numbering theirs 1, 2 stays correct, because the table is keyed by the id together with the base station's address. An S1AP capture showed InitialUEMessage, InitialContextSetupRequest (SGW-U 10.5.0.3, TEID 0x2d75) and the ICS Response bundled with an UplinkNASTransport as three DATA chunks of one SCTP packet, all parsed, nothing fragmented.
+
+| Policy | LTE UE (cell 411) | UE1 (cell A) | UE2 (cell B) |
+|---|---|---|---|
+| F4 = 411 (the LTE cell only) | edge HTTP 200 | timeout | timeout |
+| F4 = 16384 (cell A only) | timeout | edge HTTP 200 | timeout |
+
+## Breakout at GRISM, compared with an edge UPF
+
+3GPP's way is a UPF at the edge: in 5G an UL-CL / branching point steered by the SMF's N4 rules, in 4G a local S-GW/P-GW or LIPA/SIPTO. GRISM's way is an inline packet-processing box between the base stations and the core that learns each UE's cell and tunnels from the signalling and, by configuration, decapsulates chosen traffic and hands it to the edge. How they differ:
+
+| | Edge UPF | GRISM MEC breakout |
+|---|---|---|
+| What the core must do | SMF/PCF support for UL-CL, DNAI and steering rules, and a new UPF on N4 -- usually an integration project with the operator | **nothing**: no N4, no SMF that knows about it, any vendor's core |
+| 4G / 5G / NSA | different mechanisms per generation (local UPF vs. local S/P-GW), and NSA depends on where the anchor is | one box speaks S1AP and NGAP; one configuration for 4G, 5G and NSA |
+| Steering criteria | DNN, slice and UE address, with cell-level steering needing the PCF and location reports | packet-level conditions combined freely: cell, base station, UE address range, destination, ANDed or ORed with any other filter (L4–L7, IMSI, ...) |
+| Placement and latency | needs a UPF site; traffic is GTP-processed and routed again inside it | the GTP comes off at the aggregation point and the packet is delivered at L2 to the ARP-resolved edge MAC: one hop fewer |
+| On failure | a UPF outage is a service outage | an inline box can fall back to its bypass relays (G8S, T12S and G8 have them), or the chain's default leg keeps the core path |
+| Visibility | separate probes | the same box gives per-UE-session uplink/downlink packets and bytes (`get_s1ap_items`), filter counters, live capture and syslog |
+| Time to deploy | weeks to months | this whole bed is a forty-line XML |
+
+The honest limits: broken-out traffic never reaches the core, so the core's charging and lawful intercept do not see it (usually the point in an enterprise or campus network, something to agree on with an operator); GRISM has to see both planes -- N2 and N3, S1-MME and S1-U -- on the same box; and a UE moving between base stations is followed by GRISM's path-switch and handover tables rather than by a standard session anchor. The UE's address is learned from the user plane and the cell from NGAP/S1AP IEs, so NAS ciphering makes no difference.
+
 ## Operating notes
 
-- The whole bed is systemd units: wiring (oneshot) → `open5gs-amfd/upfd` (drop-ins make them wait for the wiring, or they cannot bind 10.5.0.2) → `ueransim-gnb@A/B/C` → `ueransim-ue@1/2/3` → a traffic generator. UERANSIM's gNB tries the AMF once at start and never again, so a timer that restarts any gNB without an NG Setup after a minute keeps the bed self-healing.
+- The whole bed is systemd units: wiring (oneshot) → `open5gs-amfd/upfd` (drop-ins make them wait for the wiring, or they cannot bind 10.5.0.2) → `ueransim-gnb@A/B/C` → `ueransim-ue@1/2/3`, `srsenb` → `srsue` → a traffic generator. UERANSIM's gNB tries the AMF once at start and never again, so a timer that restarts any gNB without an NG Setup after a minute keeps the bed self-healing; srsUE has to start after the eNB.
 - `journalctl -u 'ueransim-*' -f` shows registrations and PDU sessions; `get_s1ap_items` what GRISM has learned; the traffic page the P3/P4/P5 counters.
 - Switching policy is just another run.xml (`submitxml`): the engine reloads in about a second and the UE sessions are untouched.
