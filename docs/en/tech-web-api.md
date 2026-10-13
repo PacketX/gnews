@@ -16,15 +16,18 @@ Everything Grism Studio can do, it does through the web API on the device; the s
 ## Signing in, and the session
 
 ```bash
+# your own device address, account and password
+GRISM=https://DEVICE_IP; ACCOUNT=USERNAME; PASSWORD='PASSWORD'
+
 # sign in: PasswordHash is the SHA-256 of the password, lower-case hex
-HASH=$(printf '%s' 'packetx' | sha256sum | cut -d' ' -f1)
+HASH=$(printf '%s' "$PASSWORD" | sha256sum | cut -d' ' -f1)
 curl -k -c cookie.txt -H 'Content-Type: application/json' \
-     -d "{\"Username\":\"packetx\",\"Password\":\"packetx\",\"PasswordHash\":\"$HASH\"}" \
-     https://192.168.1.150/direct_login
+     -d "{\"Username\":\"$ACCOUNT\",\"Password\":\"$PASSWORD\",\"PasswordHash\":\"$HASH\"}" \
+     $GRISM/direct_login
 
 # every request after that carries the same cookie
-curl -k -b cookie.txt https://192.168.1.150/grism/task/get_current_user
-# {"username":"packetx","priv":15}
+curl -k -b cookie.txt $GRISM/grism/task/get_current_user
+# {"username":"USERNAME","priv":15}
 ```
 
 - A sign-in that works answers `{}` and sets `sessionid` and two more cookies; one that does not answers 400 with the reason (`Username or password is invalid`, for one).
@@ -57,7 +60,7 @@ class Grism:
     def post_json(self, path, obj):
         return self._send(path, json.dumps(obj).encode(), {"Content-Type": "application/json"})
 
-g = Grism("192.168.1.150", "packetx", "packetx")
+g = Grism("DEVICE_IP", "USERNAME", "PASSWORD")
 print(g.get_json("/grism/task/get_config")["args"]["model"])
 for port in g.get_json("/grism/task/get_statistics_json")["statistics"]:
     print(port["name"], port["linkStatus"], port["inPps"], port["inMbps"], port["inDrops"])
@@ -326,10 +329,10 @@ A capture still being written has a name ending in `.tmp`; with `offset` (the by
 ```bash
 # a pcap: where it goes is in the query string
 curl -k -b cookie.txt -F file=@sample.pcap \
-     'https://192.168.1.150/grism/task/upload_pcap_file?storage=H1&dir=in&name=sample.pcap'
+     "$GRISM/grism/task/upload_pcap_file?storage=H1&dir=in&name=sample.pcap"
 
 # firmware: the file must be named grism-bin.tgz (or grism-bin-<model>.tgz), and be built for this model
-curl -k -b cookie.txt -F file=@grism-bin.tgz https://192.168.1.150/grism/task/update
+curl -k -b cookie.txt -F file=@grism-bin.tgz $GRISM/grism/task/update
 ```
 
 Once uploaded, the device applies the image by itself: a MIPS model reboots, an arm64 model restarts the services concerned.

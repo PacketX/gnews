@@ -16,15 +16,18 @@ Grism Studio 做得到的事,都是透過設備上的 Web API 做的;同一組 A
 ## 登入與工作階段
 
 ```bash
+# 換成自己的設備位址、帳號與密碼
+GRISM=https://DEVICE_IP; ACCOUNT=USERNAME; PASSWORD='PASSWORD'
+
 # 登入:PasswordHash 是密碼的 SHA-256(十六進位小寫)
-HASH=$(printf '%s' 'packetx' | sha256sum | cut -d' ' -f1)
+HASH=$(printf '%s' "$PASSWORD" | sha256sum | cut -d' ' -f1)
 curl -k -c cookie.txt -H 'Content-Type: application/json' \
-     -d "{\"Username\":\"packetx\",\"Password\":\"packetx\",\"PasswordHash\":\"$HASH\"}" \
-     https://192.168.1.150/direct_login
+     -d "{\"Username\":\"$ACCOUNT\",\"Password\":\"$PASSWORD\",\"PasswordHash\":\"$HASH\"}" \
+     $GRISM/direct_login
 
 # 之後每個請求帶同一個 cookie
-curl -k -b cookie.txt https://192.168.1.150/grism/task/get_current_user
-# {"username":"packetx","priv":15}
+curl -k -b cookie.txt $GRISM/grism/task/get_current_user
+# {"username":"USERNAME","priv":15}
 ```
 
 - 登入成功回 `{}`,並設定 `sessionid` 等 cookie;失敗回 400 與原因(例如 `Username or password is invalid`)。
@@ -57,7 +60,7 @@ class Grism:
     def post_json(self, path, obj):
         return self._send(path, json.dumps(obj).encode(), {"Content-Type": "application/json"})
 
-g = Grism("192.168.1.150", "packetx", "packetx")
+g = Grism("DEVICE_IP", "USERNAME", "PASSWORD")
 print(g.get_json("/grism/task/get_config")["args"]["model"])
 for port in g.get_json("/grism/task/get_statistics_json")["statistics"]:
     print(port["name"], port["linkStatus"], port["inPps"], port["inMbps"], port["inDrops"])
@@ -326,10 +329,10 @@ data = g.get("/grism/task/download_storage_file", name="H1", dir="out", filename
 ```bash
 # pcap:目的地寫在查詢字串
 curl -k -b cookie.txt -F file=@sample.pcap \
-     'https://192.168.1.150/grism/task/upload_pcap_file?storage=H1&dir=in&name=sample.pcap'
+     "$GRISM/grism/task/upload_pcap_file?storage=H1&dir=in&name=sample.pcap"
 
 # 韌體:檔名須為 grism-bin.tgz(或 grism-bin-<機型>.tgz),機型必須與設備相符
-curl -k -b cookie.txt -F file=@grism-bin.tgz https://192.168.1.150/grism/task/update
+curl -k -b cookie.txt -F file=@grism-bin.tgz $GRISM/grism/task/update
 ```
 
 韌體上傳完成後設備會自行套用:MIPS 機種會重開機,arm64 機種只重啟相關服務。
