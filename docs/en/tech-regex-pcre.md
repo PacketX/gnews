@@ -2,16 +2,16 @@
 
 ## Two different engines
 
-`<find name="regex">` is two entirely different implementations on the two product lines, and one rule is not guaranteed the same result on both:
+`<find name="regex">` is two entirely different implementations on the two product lines, and the MIPS side comes in two compiler generations; one rule is not guaranteed the same result on all of them:
 
 | | arm64 (DPDK) models, 7.6.x | MIPS models, 6.6.x |
 |---|---|---|
 | Engine | PCRE2 10.42 (software) | Cavium HFA (hardware-assisted) |
 | How rules reach it | each rule is compiled on its own | every regex of the configuration, one per line, is compiled into **one** graph |
-| Compiler | built into the engine | Gen4 on CN73/78 (T12S, the T20 family); Gen3 on the rest (G8S, G8, G4…) |
-| Defaults | case-sensitive; `.` stops at a newline; `^` `$` are the ends of the payload | case-sensitive; `.` stops at a newline; `^` `$` **also hold at every newline** |
+| Compiler | built into the engine | **Gen4** on CN73/78 (T12S, the T20 family); **Gen3** on the rest (G8S, G8, G4…) |
+| Defaults | case-sensitive; `.` stops at a newline; `^` `$` are the ends of the payload | case-sensitive; `.` stops at a newline; `^` `$` do not mean what they mean in PCRE, nor the same on the two generations (below) |
 
-Both match **bytes** (there is no UTF-8 mode), search the L7 payload by default, and search each packet on its own, never across packets.
+All three match **bytes** (there is no UTF-8 mode), search the L7 payload by default, and search each packet on its own, never across packets.
 
 ```xml
 <filter id="10" name="sql">
@@ -25,90 +25,119 @@ Both match **bytes** (there is no UTF-8 mode), search the L7 payload by default,
 
 137 rules in 14 groups (literals, escapes, anchors, quantifiers, character classes, POSIX classes, shorthands, back-references, groups, assertions, inline options, Cavium extensions, rules seen in real use…), each with one to five payloads, some that should match and some that should not. Every (rule, payload) pair was replayed through a loopback port of the device and the device's verdict read from the filter counter, then compared with what **the PCRE2 10.42 library itself** answers for the same pair.
 
-| | Result |
-|---|---|
-| arm64 (HL1) | all 135 rules PCRE2 accepts gave PCRE2's answer on every payload |
-| MIPS Gen4 (T12S) | the compiler accepts 126; of the 123 that can be compared with PCRE2, 107 agree on every payload and 16 differ (below) |
-| MIPS Gen3 | compiler only: it accepts what Gen4 accepts, less `**` |
+| | Accepted by the compiler | Comparable with PCRE2 | Same result | Different result |
+|---|---|---|---|---|
+| arm64 (HL1) | 135 | 135 | 135 | 0 |
+| MIPS Gen4 (T12S) | 126 | 123 | 107 | 16 |
+| MIPS Gen3 (G8) | 125 | 123 | 98 | 25 |
 
-Two of the 137 are not PCRE at all (`\x{4142}` and `**`); PCRE2 itself refuses them.
+Two of the 137 are not PCRE at all (`\x{4142}` and `**`); PCRE2 itself refuses them. Six of each "different" count are Cavium macros, which mean something else in PCRE to begin with; three more of Gen3's 25 are right when used alone and were swayed by other rules of the same batch (see "Gen3: similar rules affect each other").
 
 ## Syntax support
 
 ✔ = accepted, with PCRE2's result.
 
-| Syntax | arm64 | MIPS |
-|---|---|---|
-| literals, escapes such as `\.` | ✔ | ✔ |
-| `\xhh` `\x{hh}` `\ddd` (octal) `\t` `\r` `\n` `\a` `\e` `\f` `\cA` `\Q…\E`; NUL and bytes from 0x80 up | ✔ | ✔ |
-| `.`, `a\|b`, groups `( )`, non-capturing `(?:…)` | ✔ | ✔ |
-| `*` `+` `?` `{n}` `{m,n}` `{m,}` and the lazy forms `*?` `+?` `??` `{m,n}?` | ✔ | ✔ |
-| classes `[abc]` `[^abc]` `[a-f0-9]` `[\x00-\x1f]` `[\d\s]` | ✔ | ✔ |
-| POSIX classes `[[:alnum:]]` … `[[:xdigit:]]` (all 14), negated `[[:^digit:]]` | ✔ | ✔ |
-| `\d` `\D` `\w` `\W` `\S` `\h` `\H` | ✔ | ✔ |
-| back-references `\1` `\g1` `\g{1}` `\g{-1}`; named groups `(?<n>…)` `(?'n'…)` with `\k<n>` `\k'n'` `\k{n}` | ✔ | ✔ |
-| `\b` `\B` `\A` `\z` `\Z` | ✔ | ✔ |
-| lookaround `(?=…)` `(?!…)` `(?<=…)` `(?<!…)` | ✔ | ✔ |
-| inline options `(?i)` `(?i:…)` `(?-i)` `(?s)` `(?m)` `(?x)`, comments `(?#…)` | ✔ | ✔ |
-| `^` `$` | the ends of the payload | **differs**: also at every newline |
-| possessive quantifiers `*+` `++` `?+` `{m,n}+` | ✔ | **differs**: accepted, but they behave like the ordinary (greedy) ones |
-| `\v` `\s` `\V` | ✔ | **differs**: `\v` is the one character VT (0x0B), so `\s` lacks VT and `\V` matches a newline |
-| `\N` `\o{…}` `\G` | ✔ | **differs**: accepted, and never match |
-| `\K` | ✔ | accepted and ignored (whether the rule matches is unaffected) |
-| Python-style named groups `(?P<n>…)` `(?P=n)` | ✔ | ✘ |
-| atomic groups `(?>…)`, branch reset `(?\|…)`, conditionals `(?(1)…)`, recursion and subroutine calls `(?1)` | ✔ | ✘ |
-| `(?U)`, `(*…)` start-of-pattern items, callouts `(?C)` | ✔ | ✘ |
-| `\R`, Unicode properties `\p{…}` | ✔ | ✘ |
-| Cavium macros `{i}` `{s}` `{x}` `{t}` `{@n}` (below) | read as literal text | ✔ |
-| multi-byte hex `\x{4142}` | ✘ | ✔ |
-| `**` | ✘ | Gen4 ✔, Gen3 ✘ |
+| Syntax | arm64 | MIPS Gen4 | MIPS Gen3 |
+|---|---|---|---|
+| literals, escapes such as `\.` | ✔ | ✔ | ✔ |
+| `\xhh` `\x{hh}` `\ddd` (octal) `\t` `\r` `\n` `\a` `\e` `\f` `\cA` `\Q…\E`; NUL and bytes from 0x80 up | ✔ | ✔ | ✔ |
+| `.`, `a\|b`, groups `( )`, non-capturing `(?:…)` | ✔ | ✔ | ✔ |
+| `*` `+` `?` `{n}` `{m,n}` `{m,}` and the lazy forms `*?` `+?` `??` `{m,n}?` | ✔ | ✔ | ✔ ※ |
+| classes `[abc]` `[^abc]` `[a-f0-9]` `[\x00-\x1f]` `[\d\s]` | ✔ | ✔ | ✔ ※ |
+| POSIX classes `[[:alnum:]]` … `[[:xdigit:]]` (all 14), negated `[[:^digit:]]` | ✔ | ✔ | ✔ ※ |
+| `\d` `\D` `\w` `\W` `\S` | ✔ | ✔ | ✔ |
+| `\h` `\H` | ✔ | ✔ | **differs**: `\h` includes the newline, `\H` excludes it |
+| back-references `\1` `\g1` `\g{1}` `\g{-1}`; named groups `(?<n>…)` `(?'n'…)` with `\k<n>` `\k'n'` `\k{n}` | ✔ | ✔ | ✔ |
+| `\b` `\B` | ✔ | ✔ | ✔ (except `\b` next to a quantified capturing group, below) |
+| `\A` `\z` `\Z` | ✔ | ✔ | **differs**: accepted and ignored, as if not written |
+| lookaround `(?=…)` `(?!…)` `(?<=…)` `(?<!…)` | ✔ | ✔ | ✔ |
+| inline options `(?i)` `(?i:…)` `(?-i)` `(?s)` `(?x)`, comments `(?#…)` | ✔ | ✔ | ✔ |
+| `^` `$` | the ends of the payload; every newline too only with `(?m)` | **differs**: the ends of the payload **and** every newline, as if `(?m)` were always on | **differs**: newlines **only** -- `^` is after a newline, `$` before one; the start and the end of the payload do not count, `(?m)` or not |
+| possessive quantifiers `*+` `++` `?+` `{m,n}+` | ✔ | **differs**: accepted, but they behave like the ordinary (greedy) ones | as Gen4 |
+| `\v` `\s` `\V` | ✔ | **differs**: `\v` is the one character VT (0x0B), so `\s` lacks VT and `\V` matches a newline | as Gen4 |
+| `\N` `\o{…}` | ✔ | **differs**: accepted, and never match | as Gen4 |
+| `\G` | ✔ | **differs**: accepted, and never matches | **differs**: accepted and ignored, as if not written |
+| `\K` | ✔ | accepted and ignored (whether the rule matches is unaffected) | as Gen4 |
+| Python-style named groups `(?P<n>…)` `(?P=n)` | ✔ | ✘ | ✘ |
+| atomic groups `(?>…)`, branch reset `(?\|…)`, conditionals `(?(1)…)`, recursion and subroutine calls `(?1)` | ✔ | ✘ | ✘ |
+| `(?U)`, `(*…)` start-of-pattern items, callouts `(?C)` | ✔ | ✘ | ✘ |
+| `\R`, Unicode properties `\p{…}` | ✔ | ✘ | ✘ |
+| Cavium macros `{i}` `{s}` `{x}` `{t}` `{@n}` (below) | read as literal text | ✔ | ✔ |
+| multi-byte hex `\x{4142}` | ✘ | ✔ | ✔ |
+| `**` | ✘ | ✔ | ✘ |
 
-The HFA syntax specification and the measurement disagree in three places (Gen4): it says `^` is replaced by `\n`, yet the start of the payload matches too; it says `\h` includes the newline, yet it does not, as in PCRE; and `(?:…)`, which it does not list, works.
+※ Right when used alone; may answer wrongly when loaded beside a similar rule, see "Gen3: similar rules affect each other".
+
+The HFA syntax specification describes what Gen3 does; Gen4 measured differently in three places: the specification says `^` is replaced by `\n`, yet the start of the payload matches too; it says `\h` includes the newline, yet it does not; and `(?:…)`, which it does not list, works.
 
 ## Accepted, with a different answer
 
-These are the easy ones to get wrong, because neither side complains -- the answers just differ:
+These are the easy ones to get wrong, because nobody complains -- the answers just differ:
 
-| Rule | Payload | arm64 | MIPS |
+| Rule | Payload | arm64 | Gen4 | Gen3 |
+|---|---|---|---|---|
+| `^abc` | `abcdef` | match | match | **no match** |
+| `^abc` | `zz⏎abcdef` | no match | **match** | **match** |
+| `abc$` | `zzabc` | match | match | **no match** |
+| `abc$` | `abc⏎zz` | no match | **match** | **match** |
+| `\Aabc` | `zzabcdef` | no match | no match | **match** |
+| `abc\z` | `abczz` | no match | no match | **match** |
+| `\Gabc` | `abcx` | match | **no match** | match |
+| `\Gabc` | `xabc` | no match | no match | **match** |
+| `xa++ay` | `xaaay` | no match | **match** | **match** |
+| `x\sy` | `x`, VT, `y` | match | **no match** | **no match** |
+| `x\vy` | `x⏎y` | match | **no match** | **no match** |
+| `x\Vy` | `x⏎y` | no match | **match** | **match** |
+| `x\hy` | `x⏎y` | no match | no match | **match** |
+| `a\Nb` | `axb` | match | **no match** | **no match** |
+| `x\o{101}y` | `xAy` | match | **no match** | **no match** |
+| `\b(\d{1,3}\.){3}\d{1,3}\b` | `src=10.20.30.40;` | match | match | **no match** |
+
+(⏎ is the newline, 0x0A; bold marks an answer that is not PCRE2's.)
+
+The last row is Gen3's trouble with `\b` next to a quantified capturing group: drop the `\b`, or make the group non-capturing -- `(?:\d{1,3}\.){3}` -- and it answers as the other two do.
+
+## Gen3: similar rules affect each other
+
+On the Gen3 models (G8S, G8, G4), two rules that begin and end alike and differ only in the repeated middle can, **when loaded together**, have one report a match on behalf of the other. Either rule loaded alone is right; arm64 and Gen4 were given the same combinations and do not show it.
+
+| The two rules, loaded together | Payload | Should match | Reported as matching on Gen3 |
 |---|---|---|---|
-| `^abc` | `zz⏎abcdef` | no match | match |
-| `abc$` | `abc⏎zz` | no match | match |
-| `^abc$` | `x⏎abc⏎y` | no match | match |
-| `xa++ay` | `xaaay` | no match | match |
-| `x\sy` | `x`, VT, `y` | match | no match |
-| `x\vy` | `x⏎y` | match | no match |
-| `x\Vy` | `x⏎y` | no match | match |
-| `a\Nb` | `axb` | match | no match |
-| `x\o{101}y` | `xAy` | match | no match |
-| `\Gabc` | `abcx` | match | no match |
+| `x[a-z]+y`, `x[0-9]+y` | `xabcy` | the first only | both |
+| `a.*c`, `a.+c` | `ac` | the first only | both |
+| `a.*?c`, `a.+?c` | `ac` | the first only | both |
+| `x[a-z]{1,200}y`, `x[a-f0-9]+y` | `xdeagy` | the first only | both |
 
-(⏎ is the newline, 0x0A.)
+Combinations that did not show it in the same run: fixed counts (`x[a-z]{3}y` with `x[a-f]{3}y`), literals with a common prefix (`hello1` with `hello2`), one class inside the other (`x[a-z]+y` with `x[a-f]+y`).
+
+On a Gen3 model, where a configuration holds such a set -- same beginning and end, a `+` or `*` repeat between -- check each rule's result with real payloads, or fold the set into one rule.
 
 ## Cavium macros (MIPS only)
 
 An HFA rule may begin with a `{…}` block, its attributes separated by commas, as in `{i,s}a.c`:
 
-| Macro | Meaning | The form both lines take |
+| Macro | Meaning | In PCRE |
 |---|---|---|
-| `{i}` | case-insensitive | `(?i)` |
-| `{s}` | `.` matches a newline too | `(?s)` |
-| `{x}` | white space in the rule is ignored | `(?x)` |
-| `{@n}` | match only n bytes from the start; `{@0}` is the start | `\A` for the start |
+| `{i}` | case-insensitive | `(?i)` (taken by all three) |
+| `{s}` | `.` matches a newline too | `(?s)` (taken by all three) |
+| `{x}` | white space in the rule is ignored | `(?x)` (taken by all three) |
+| `{@n}` | match only n bytes from the start; `{@0}` is the start | `\A` for the start (not honoured by Gen3) |
 | `{t}` | report where the match begins (does not change whether it matches) | — |
 
 On arm64 the block is **literal text, not a macro**: `{i}hello` is a case-insensitive hello on MIPS and the eight characters `{i}hello` on arm64. Neither side reports anything.
 
 Also, on MIPS a rule that begins with `#` is a comment line to the compiler; to match something that starts with `#`, write `[#]` or `\x23`.
 
-## Writing rules that mean the same on both
+## Writing rules that mean the same on all three
 
-- Keep to the upper half of the table, where both columns say ✔. The rules seen in real use (e-mail, IPv4, an HTTP request line, a Host header, card numbers, URLs, hex digests, `(?i)union\s+select`, a file's magic bytes) gave the same result on both.
+- Keep to the rows where all three columns say ✔. The rules seen in real use (e-mail, IPv4, an HTTP request line, a Host header, card numbers, URLs, hex digests, `(?i)union\s+select`, a file's magic bytes) gave the same result on all three.
 - Set options with `(?i)` `(?s)` `(?x)`, not with `{i}` and its kin.
-- Anchor to the ends of the payload with `\A` and `\z`; where a per-line anchor is meant, say so with `(?m)^` and `(?m)$`. A bare `^` or `$` gets two different answers once the payload holds a newline.
+- **No anchor is common to all three.** The start of the payload is `\A` on arm64 and Gen4, and only the macro `{@0}` on Gen3. The end of the payload is `\z` on arm64 and Gen4, and has no counterpart on Gen3. Write a rule that must be anchored to either end once per kind of model.
+- For "start of a line" and "end of a line", put the newline in the rule -- `\nHost: `, `\r\n` -- which all three read alike; a bare `^` or `$` has three meanings on three engines.
 - Do not reach for possessive quantifiers or atomic groups to stop backtracking: MIPS either refuses them or does not honour them.
-- For white space that includes VT write `[ \t\r\n\f\x0b]`; for any line ending write `(?:\r\n|\n|\r)` rather than `\R`; for "not a newline" write `[^\n]` rather than `\N`.
-- Name groups as `(?<n>…)`, not `(?P<n>…)`.
-- Both lines match bytes: write non-ASCII content byte by byte with `\xhh`, not with `\p{…}`.
+- Spell white space out: `[ \t\r\n\f\x0b]` where VT counts, `[ \t]` rather than `\h` for horizontal space; `(?:\r\n|\n|\r)` rather than `\R` for any line ending; `[^\n]` rather than `\N` for "not a newline".
+- Where a group is not referred back to, write it as `(?:…)`; name groups as `(?<n>…)`, not `(?P<n>…)`.
+- All three match bytes: write non-ASCII content byte by byte with `\xhh`, not with `\p{…}`.
 
 ## A rule the engine will not take
 
@@ -126,7 +155,7 @@ It is made to match nothing, rather than to carry on one condition short, becaus
 To check a rule beforehand:
 
 - **arm64**: any PCRE2 tool (`pcre2test`, or an online tester set to PCRE2), with no flags.
-- **MIPS**: compile that one rule on the device with its own compiler, which does not touch the running configuration; `-target` takes the value of `args.hfaTarget` in `GRISM.config.json`. No `/tmp/g` afterwards means the rule is not accepted, and the reason is printed.
+- **MIPS**: compile that one rule on the device with its own compiler, which does not touch the running configuration; `-target` takes the value of `args.hfaTarget` in `GRISM.config.json`. No `/tmp/g` afterwards means the rule is not accepted, and the reason is printed. A rule that compiles is only a rule whose syntax is accepted: whether its result is PCRE's is what the tables above are for.
 
   ```bash
   printf '%s\r\n' 'the rule to check' > /tmp/p
