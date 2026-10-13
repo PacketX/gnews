@@ -147,14 +147,16 @@ A GET with nothing in its "Parameters" column takes none. "MIPS only" is the 6.6
 
 | Call | Method | Level | Parameters | What it does |
 |---|---|---|---|---|
-| `/grism/task/get_statistics_json` | GET | open | — | `statistics` (per port: link, rates, packet and byte counts, every kind of drop and error), `sessions`, `sessionsv6`, `filter`, `packet_type_counter` |
-| `/grism/task/get_lite_statistics_json` | GET | open | — | the per-port part alone: lighter, the one to poll often |
+| `/grism/task/get_statistics_json` | GET | view ※ | — | `statistics` (per port: link, rates, packet and byte counts, every kind of drop and error), `sessions`, `sessionsv6`, `filter`, `packet_type_counter` |
+| `/grism/task/get_lite_statistics_json` | GET | view ※ | — | the per-port part alone: lighter, the one to poll often |
 | `/grism/task/get_filter_counter` | GET | view | — | `try_count`, `matched_count` and `matched_per_second` of each filter |
 | `/grism/task/get_country_counter` | GET | view | — | traffic by country |
 | `/grism/task/get_flow_service` | GET | view | — | traffic grouped by service |
 | `/grism/task/get_flow_table` | GET | view | — | the flow table |
 | `/grism/task/clear_counters` | GET | operator | — | clear every counter |
 | `/grism/task/clear_lite_counters` | GET | operator | — | clear the per-port counters only |
+
+※ On 6.6.261008.4 / 7.6.261008.1 and earlier these two statistics calls answer without a session; later versions want one (a view-level account is enough). A monitoring script that does not sign in gets a 404 after the upgrade: add the sign-in.
 
 ### Mapping tables and learned tables
 

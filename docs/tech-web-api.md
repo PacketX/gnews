@@ -147,14 +147,16 @@ for port in g.get_json("/grism/task/get_statistics_json")["statistics"]:
 
 | 端點 | 方法 | 等級 | 參數 | 說明 |
 |---|---|---|---|---|
-| `/grism/task/get_statistics_json` | GET | 公開 | — | `statistics`(每埠:連線狀態、速率、封包與位元組數、各種丟棄與錯誤)、`sessions`、`sessionsv6`、`filter`、`packet_type_counter` |
-| `/grism/task/get_lite_statistics_json` | GET | 公開 | — | 只有每埠統計,較輕量,適合高頻輪詢 |
+| `/grism/task/get_statistics_json` | GET | 檢視 ※ | — | `statistics`(每埠:連線狀態、速率、封包與位元組數、各種丟棄與錯誤)、`sessions`、`sessionsv6`、`filter`、`packet_type_counter` |
+| `/grism/task/get_lite_statistics_json` | GET | 檢視 ※ | — | 只有每埠統計,較輕量,適合高頻輪詢 |
 | `/grism/task/get_filter_counter` | GET | 檢視 | — | 每個篩選器的 `try_count`、`matched_count`、`matched_per_second` |
 | `/grism/task/get_country_counter` | GET | 檢視 | — | 依國家的流量計數 |
 | `/grism/task/get_flow_service` | GET | 檢視 | — | 依服務分組的流量 |
 | `/grism/task/get_flow_table` | GET | 檢視 | — | 流量表內容 |
 | `/grism/task/clear_counters` | GET | 操作 | — | 清除所有計數器 |
 | `/grism/task/clear_lite_counters` | GET | 操作 | — | 只清除每埠計數器 |
+
+※ 6.6.261008.4 / 7.6.261008.1 以及更早的版本,這兩個統計端點不需要登入就能讀取;之後的版本需要登入(檢視等級即可)。既有的監控腳本若沒有登入,升級後會收到 404,請加上登入步驟。
 
 ### 對應表與學習表
 
