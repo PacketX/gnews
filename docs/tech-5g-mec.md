@@ -247,6 +247,42 @@ attach 成功後 UE 拿到 `tun_srsue`(10.45.0.x,與 5G 同一個位址池);cons
 | F4 = 411(只放行 LTE cell) | 邊緣 HTTP 200 | 逾時 | 逾時 |
 | F4 = 16384(只放行 cell A) | 逾時 | 邊緣 HTTP 200 | 逾時 |
 
+## 換手:用合成的 NGAP 訊令測 Xn 與 N2 handover
+
+UERANSIM 與 srsRAN 4G 都不會把 UE 從一個基地台換到另一個,所以換手無法用真 UE 測。改用 `/opt/5g/load/mecho.py`:它以 pycrate 的 NGAP 定義組出換手的每一則訊息(`mecho.py check` 把每一則再解碼一次,並對照 pycrate 的 NGAP-Constants 核對 procedure code 與 IE id),連同 SCTP、IP、乙太網路標頭一起用 raw socket 從 `ran` namespace 的 ens19 送出,所以和真 gNB 的訊令一樣從 P4 進 GRISM。核心網那一端不必存在:合成的 gNB 在 10.6.0.0/16、AMF 與 UPF 在 10.7.0.0/24,主機對這兩個網段設 blackhole 路由,訊息只是為了讓 GRISM 看見。
+
+```
+VM [ran namespace]                                   GRISM G8S-MEC
+  ens19 ── raw socket:                                 P4 ──┐ inline chain
+    gNB g   10.6.x.y   cell 65536+g   (來源)                  │ P4 <-> P5
+    gNB g+1 10.6.x.y+1 cell 65537+g   (目標)                  │
+    AMF/UPF 10.7.0.250 (只存在於封包裡)                 P5 ──┘
+  主機:blackhole 10.6.0.0/16、10.7.0.0/24;從管理網路讀 get_s1ap_items
+```
+
+每個 session 先照一般註冊的順序建立(InitialUEMessage → PDUSessionResourceSetupRequest/Response → 一個上行 G-PDU),再從來源 gNB g 換到 gNB g+1——另一個位址、另一個 cell,目標 gNB 自己編 RAN-UE-NGAP-ID:
+
+| 程序 | 訊息(方向) | GRISM 應做的事 |
+|---|---|---|
+| Xn 換手(path switch) | PathSwitchRequest(目標 gNB → AMF:新 RAN id、來源 AMF id、UserLocationInformation 裡的新 cell、新的下行隧道)→ PathSwitchRequestAcknowledge(AMF → 目標 gNB:新 AMF id、上行隧道)→ 目標 gNB 的上行 G-PDU | 兩則訊息進 path-switch 暫存表,配對後換成正式節點 |
+| N2 換手(經核心網) | HandoverRequest(AMF → 目標 gNB:AMF id、上行隧道)→ HandoverRequestAcknowledge(目標 → AMF:新 RAN id、下行隧道)→ HandoverNotify(目標 → AMF:新 cell)→ 來源 gNB 的 UEContextReleaseComplete → 目標 gNB 的上行 G-PDU | handover 暫存表配對後換成正式節點,HandoverNotify 設 cell,來源節點釋放 |
+
+`--verify` 在換手前後各讀一次 `get_s1ap_items?ue-ipv4=<UE>`;一個 session 算通過的條件是表裡只剩一個節點,而且它的基地台位址(`ran-ipv4`)、`cellid`、RAN id 都是目標 gNB 的。
+
+```bash
+python3 /opt/5g/load/mecho.py check                       # 編碼自檢,不送任何東西
+python3 /opt/5g/load/mecho.py xn --count 200 --verify     # 200 個 session 做 Xn 換手
+python3 /opt/5g/load/mecho.py n2 --count 200 --verify     # 同一批做 N2 換手
+```
+
+要在主機上執行,不要包在 `ip netns exec ran` 裡:程式只在開 raw socket 時進入 `ran` namespace(socket 建立後就跟著那個 namespace),讀 GRISM 的表則從主機,管理網路的路由在那裡。它只需要 `ran` namespace 與那兩條 blackhole 路由,測試床的其他部分可以不啟動。
+
+**結果。** 修正前兩種換手都是 0/200:換手後的節點掛在「RAN id + 基地台位址 0」底下、沒有 cell,換手後的 UE 對 cell 策略(F4)不再命中,breakout 就失效。修正後(引擎 2.11.23 / 2.9.26 起)Xn、N2 各 200/200;同一批訊框寫成 pcap、以 `submit_instant` 的 `replayPcap` 輸入從 LOOP 埠回放,在一台不在測試床上的 HL1 也是 100/100,所以任何機器都能這樣測。修的東西有三件:基地台位址沒有跟著 session 走過換手暫存表;5G 完全沒有解析 HandoverNotify,PathSwitchRequest 裡的 UserLocationInformation 也沒讀,換手後只有 4G 會更新 cell;NGAP 的分派在 PathSwitchRequest 上又做了一次一般的新增,留下一個「來源 AMF id 配目標 RAN id」的節點。
+
+**要看 GRISM 對每一則 MEC 訊息做了什麼**,用 `submit_config` 把 `<args>` 裡的 `s1apItemsUpdateLog` 設成 `True`,並把一個 syslog 目標的 `<type>` 設成 `mec`(這個型別設定頁沒有列出,用 `get_config` 匯出目前的紀錄設定改一個目標即可):表的每一次新增、配對、換手、釋放都會按順序送到該目標。追換手類問題時這比抓包快得多。
+
+**沒有模擬的:** 4G 的 X2/S1 換手(S1AP 的 PathSwitchRequest 與 HandoverNotify 走同一套表,4G 一向有解析,但沒有用合成訊令跑過);5G 的 PDUSessionResourceModify / ModifyIndication 目前不解析,改變隧道的那種修改 GRISM 不會跟到。
+
 ## 在 GRISM 做 breakout,相較於邊緣 UPF 的優勢
 
 3GPP 的標準做法是在邊緣部署一個 UPF(5G 用 UL-CL/branching point 分流,4G 用本地 S-GW/P-GW 或 LIPA/SIPTO),由 SMF 下 N4 規則決定哪些流量就地落地。GRISM 的做法是把一台 inline 的封包處理設備放在基地台與核心網之間,從訊令學會每個 UE 的 cell 與隧道,再依設定把特定流量解封裝後交給邊緣。兩者的差別:
@@ -268,3 +304,4 @@ attach 成功後 UE 拿到 `tun_srsue`(10.45.0.x,與 5G 同一個位址池);cons
 - 整套用 systemd 管理:接線(oneshot)→ `open5gs-amfd/upfd`(drop-in 讓它們等接線完成,否則綁不到 10.5.0.2)→ `ueransim-gnb@A/B/C` → `ueransim-ue@1/2/3`、`srsenb` → `srsue` → 流量產生器。UERANSIM 的 gNB 開機時只連一次 AMF,連不上不會重試,用一個每分鐘檢查「沒完成 NG Setup 就重啟」的 timer 補上;srsUE 要在 eNB 之後啟動。
 - `journalctl -u 'ueransim-*' -f` 看註冊與 PDU session;`get_s1ap_items` 看 GRISM 學到的 session;介面流量頁看 P3/P4/P5。
 - 切換策略就是重送 run.xml(`submitxml`),引擎重載約一秒,UE 的 session 不受影響。
+- 換手只能用合成訊令測(`mecho.py xn|n2 --verify`,見上),塞表用 `mecfill.py`(InitialUEMessage + PDU session 建立 + 一個 G-PDU,每秒數千個 session);兩者都只要 `ran` namespace 與 blackhole 路由。

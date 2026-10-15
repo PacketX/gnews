@@ -247,6 +247,42 @@ Under both policies all three UEs still reach the internet, and F4 only counts h
 | F4 = 411 (the LTE cell only) | edge HTTP 200 | timeout | timeout |
 | F4 = 16384 (cell A only) | timeout | edge HTTP 200 | timeout |
 
+## Handover: Xn and N2 with synthesised NGAP
+
+Neither UERANSIM nor srsRAN 4G moves a UE from one base station to another, so handover cannot be tested with real UEs. `/opt/5g/load/mecho.py` stands in: it encodes every message of a handover from pycrate's NGAP definitions (`mecho.py check` decodes each one back and checks the procedure codes and IE ids against pycrate's NGAP-Constants), wraps them in SCTP, IP and Ethernet and sends them through a raw socket on ens19 inside the `ran` namespace, so they enter GRISM on P4 exactly as a real gNB's signalling does. No core has to exist for them: the synthetic gNBs live in 10.6.0.0/16, the AMF and UPF in 10.7.0.0/24, both blackholed on the host; the messages are there for GRISM to see and nothing else.
+
+```
+VM [ran namespace]                                   GRISM G8S-MEC
+  ens19 ── raw socket:                                 P4 ──┐ inline chain
+    gNB g   10.6.x.y   cell 65536+g   (source)               │ P4 <-> P5
+    gNB g+1 10.6.x.y+1 cell 65537+g   (target)               │
+    AMF/UPF 10.7.0.250 (exist only inside the packets) P5 ──┘
+  host: blackhole 10.6.0.0/16, 10.7.0.0/24; reads get_s1ap_items over the management network
+```
+
+Each session is first set up as a registration would be (InitialUEMessage → PDUSessionResourceSetupRequest/Response → one uplink G-PDU), then handed over from its gNB g to gNB g+1 -- another address, another cell, and a target that numbers its UEs on its own:
+
+| Procedure | Messages (direction) | What GRISM has to do |
+|---|---|---|
+| Xn handover (path switch) | PathSwitchRequest (target gNB → AMF: new RAN id, the source AMF id, the new cell in UserLocationInformation, the new downlink tunnel) → PathSwitchRequestAcknowledge (AMF → target gNB: a new AMF id, the uplink tunnel) → an uplink G-PDU from the target gNB | both messages go into the path-switch staging table and, once paired, become the real node |
+| N2 handover (through the core) | HandoverRequest (AMF → target gNB: AMF id, uplink tunnel) → HandoverRequestAcknowledge (target → AMF: new RAN id, downlink tunnel) → HandoverNotify (target → AMF: the new cell) → the source gNB's UEContextReleaseComplete → an uplink G-PDU from the target gNB | the handover staging table pairs and makes the real node, HandoverNotify sets the cell, the source node is released |
+
+`--verify` reads `get_s1ap_items?ue-ipv4=<UE>` before and after; a session passes when exactly one node is left and its base station address (`ran-ipv4`), `cellid` and RAN id are the target gNB's.
+
+```bash
+python3 /opt/5g/load/mecho.py check                       # encoder self-check, sends nothing
+python3 /opt/5g/load/mecho.py xn --count 200 --verify     # Xn handover for 200 sessions
+python3 /opt/5g/load/mecho.py n2 --count 200 --verify     # N2 handover for the same batch
+```
+
+Run it on the host, not under `ip netns exec ran`: it enters the `ran` namespace only to open the raw socket (a socket keeps the namespace it was created in) and reads GRISM's table from the host, where the management route is. It needs the `ran` namespace and the two blackhole routes, nothing else of the bed.
+
+**Results.** Before the fix both kinds scored 0/200: the handed-over node sat under "RAN id + base station address 0" with no cell, so after a handover the UE no longer matched the cell policy (F4) and lost its breakout. With the fix (engine 2.11.23 / 2.9.26 on) Xn and N2 score 200/200 each; the same frames written to a pcap and replayed from a LOOP port through a `replayPcap` input in `submit_instant` score 100/100 on an HL1 that is nowhere near the bed, so any box can be tested this way. Three things were fixed: the base station's address did not follow the session through the handover staging tables; 5G did not parse HandoverNotify at all, nor the UserLocationInformation in PathSwitchRequest, so only 4G updated the cell after a handover; and the NGAP dispatcher also ran a plain add on a PathSwitchRequest, leaving a node with the source AMF id and the target RAN id.
+
+**To see what GRISM did with each MEC message**, set `s1apItemsUpdateLog` under `<args>` to `True` with `submit_config` and give one syslog target the `<type>` `mec` (the settings page does not list that type; export the current logging configuration with `get_config` and change one target): every add, pairing, handover and release of the table goes to that target in order. For a handover problem it is much faster than a capture.
+
+**Not simulated:** 4G X2/S1 handover (S1AP's PathSwitchRequest and HandoverNotify share the tables and 4G has always parsed them, but no synthetic run has covered them), and 5G PDUSessionResourceModify / ModifyIndication, which are not parsed, so a modification that changes a tunnel is not followed.
+
 ## Breakout at GRISM, compared with an edge UPF
 
 3GPP's way is a UPF at the edge: in 5G an UL-CL / branching point steered by the SMF's N4 rules, in 4G a local S-GW/P-GW or LIPA/SIPTO. GRISM's way is an inline packet-processing box between the base stations and the core that learns each UE's cell and tunnels from the signalling and, by configuration, decapsulates chosen traffic and hands it to the edge. How they differ:
@@ -268,3 +304,4 @@ The honest limits: broken-out traffic never reaches the core, so the core's char
 - The whole bed is systemd units: wiring (oneshot) → `open5gs-amfd/upfd` (drop-ins make them wait for the wiring, or they cannot bind 10.5.0.2) → `ueransim-gnb@A/B/C` → `ueransim-ue@1/2/3`, `srsenb` → `srsue` → a traffic generator. UERANSIM's gNB tries the AMF once at start and never again, so a timer that restarts any gNB without an NG Setup after a minute keeps the bed self-healing; srsUE has to start after the eNB.
 - `journalctl -u 'ueransim-*' -f` shows registrations and PDU sessions; `get_s1ap_items` what GRISM has learned; the traffic page the P3/P4/P5 counters.
 - Switching policy is just another run.xml (`submitxml`): the engine reloads in about a second and the UE sessions are untouched.
+- Handover can only be tested with synthesised signalling (`mecho.py xn|n2 --verify`, above); filling the table is `mecfill.py` (InitialUEMessage + PDU session setup + one G-PDU, thousands of sessions a second). Both need only the `ran` namespace and the blackhole routes.
