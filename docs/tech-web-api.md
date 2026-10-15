@@ -108,6 +108,9 @@ for port in g.get_json("/grism/task/get_statistics_json")["statistics"]:
 | `/grism/task/get_service_status` | GET | 檢視 | — | `service_status`:每個服務的 `state`、`pids`、`ports` |
 | `/grism/task/get_status` | GET | 檢視 | — | `{"loading","message","gdp_loading"}`:設定是否正在載入 |
 | `/grism/get_log` | GET | 檢視 | — | 純文字:系統記錄 `log.txt` |
+| `/grism/task/get_log_files` | GET | 檢視 | — | 列出系統記錄檔(`log.txt` 及輪替出的 `log.txt.1`–`.4`)的名稱、大小、時間 |
+| `/grism/task/get_log_file` | GET | 檢視 | `name`(`log.txt`、`log.txt.1`–`.4`) | 純文字:指定的系統記錄檔 |
+| `/grism/task/download_logs` | GET | 檢視 | — | 下載全部系統記錄檔,打包成 `<型號>-log-<日期時間>.zip` |
 | `/grism/task/get_debug_status` | GET | 檢視 | — | 封包引擎是否存活、core dump 開關、既有的 core 檔 |
 
 ### 設備設定

@@ -108,6 +108,9 @@ A GET with nothing in its "Parameters" column takes none. "MIPS only" is the 6.6
 | `/grism/task/get_service_status` | GET | view | — | `service_status`: `state`, `pids` and `ports` of every service |
 | `/grism/task/get_status` | GET | view | — | `{"loading","message","gdp_loading"}`: whether a configuration is being loaded |
 | `/grism/get_log` | GET | view | — | text: the system log, `log.txt` |
+| `/grism/task/get_log_files` | GET | view | — | the system log files (`log.txt` and the `log.txt.1`–`.4` it rotated into): name, size, time |
+| `/grism/task/get_log_file` | GET | view | `name` (`log.txt`, `log.txt.1`–`.4`) | plain text: that system log file |
+| `/grism/task/download_logs` | GET | view | — | every system log file in one `<model>-log-<date-time>.zip` |
 | `/grism/task/get_debug_status` | GET | view | — | whether the packet engine is alive, the core-dump switch, the core files there are |
 
 ### Device settings
