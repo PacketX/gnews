@@ -1,3 +1,64 @@
+## GRISM-7.6.261016.1
+\- function added \-
+- Allow Local Login Hosts: while TACACS+ / RADIUS is on, sign-ins from the listed addresses use the local accounts (Settings → Login authentication)
+- System log shows the older log files, and all of them can be downloaded as one zip
+- an alert on the MEC table's fill, raised at 95% (Settings → Alerts)
+
+\- bug fixed \-
+- fix a regex filter with syntax the engine does not take affecting other filters, or stopping the packet engine
+- fix clearing a management interface's gateway not taking effect
+- fix the watcher exiting when a bypass filter is set
+- fix traffic counters occasionally under-counting on several cores
+- fix the packet engine stopping when the packet buffer pool ran dry
+- fix a port's outDrops count and its source IP setting
+
+\- item changed \-
+- the traffic statistics API needs a sign-in
+- the system log records the address a request really came from
+- in verbose mode the system log follows packet capture and ARP sending (for debugging)
+
+\- MEC \-
+- the table's three indexes (uplink TEID, UE address, AMF/MME UE id) are buckets that delete: a session that is released, evicted or idle-cleared takes its index entries with it, a lookup costs the same at any fill, and a nearly full table no longer stalls packet processing (it used to cost 2.8 µs a packet above 90% and fall to a few hundred packets a second near full)
+- the UE-address and TEID indexes are at least twice the table; a smaller setting is raised automatically
+- a better bucket hash for the table's nodes: UEs numbered in step by the AMF and a base station no longer land in one bucket (1000 of them used to keep 100)
+- the cell and UE-id mapping carries the base station's address: several base stations each numbering from 1 no longer overwrite each other
+- handover (Xn path switch and N2) keeps the base station's address and the cell; 5G now parses HandoverNotify and the location in PathSwitchRequest; a 5G path switch no longer leaves cell 0
+- a UE's second bearer / PDU session keeps its tunnel and address alongside the first
+- new setting nrCellIdentityBits: how many high bits of the NR Cell Identity make the 5G cell id, 26 by default (Settings → MEC)
+- when a downlink GTP wrap finds no session for its destination, the system log says how many and which addresses, once a minute
+- with s1apItemsUpdateLog on and a syslog target of type mec, every change of the table is sent (for debugging)
+- verified with 900 UEs, ~400 Mbps and the table at 90%: handover, SCTP-fragmented signalling and heavy session churn
+
+
+## GRISM-6.6.261016.1
+\- function added \-
+- Allow Local Login Hosts: while TACACS+ / RADIUS is on, sign-ins from the listed addresses use the local accounts (Settings → Login authentication)
+- System log shows the older log files, and all of them can be downloaded as one zip
+- an alert on the MEC table's fill, raised at 95% (Settings → Alerts)
+
+\- bug fixed \-
+- fix a regex filter with syntax the engine does not take affecting other filters, or stopping the packet engine
+- fix clearing a management interface's gateway not taking effect
+- fix the watcher exiting when a bypass filter is set
+- fix traffic counters occasionally under-counting on several cores
+
+\- item changed \-
+- the traffic statistics API needs a sign-in
+- the system log records the address a request really came from
+
+\- MEC \-
+- the table's three indexes (uplink TEID, UE address, AMF/MME UE id) are buckets that delete: a session that is released, evicted or idle-cleared takes its index entries with it, a lookup costs the same at any fill, and a nearly full table no longer stalls packet processing (it used to cost 2.8 µs a packet above 90% and fall to a few hundred packets a second near full)
+- the UE-address and TEID indexes are at least twice the table; a smaller setting is raised automatically
+- a better bucket hash for the table's nodes: UEs numbered in step by the AMF and a base station no longer land in one bucket (1000 of them used to keep 100)
+- the cell and UE-id mapping carries the base station's address: several base stations each numbering from 1 no longer overwrite each other
+- handover (Xn path switch and N2) keeps the base station's address and the cell; 5G now parses HandoverNotify and the location in PathSwitchRequest; a 5G path switch no longer leaves cell 0
+- a UE's second bearer / PDU session keeps its tunnel and address alongside the first
+- new setting nrCellIdentityBits: how many high bits of the NR Cell Identity make the 5G cell id, 26 by default (Settings → MEC)
+- when a downlink GTP wrap finds no session for its destination, the system log says how many and which addresses, once a minute
+- with s1apItemsUpdateLog on and a syslog target of type mec, every change of the table is sent (for debugging)
+- verified with 900 UEs, ~400 Mbps and the table at 90%: handover, SCTP-fragmented signalling and heavy session churn
+
+
 ## GRISM-7.6.261008.1
 \- function added \-
 - alerts on CPU, memory, disks, temperatures, fans, services and the packet engine (Settings → Alerts)
