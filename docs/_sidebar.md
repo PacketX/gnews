@@ -5,6 +5,7 @@
   - [版本資訊](/)
   - [文件](docs.md)
 - 技術筆記
+  - [JA4 指紋:計算、驗證與踩過的坑](tech-ja4.md)
   - [多核心下的 strtok](tech-strtok.md)
   - [5G、4G/NSA 測試環境與 MEC breakout](tech-5g-mec.md)
   - [regex 篩選器對 PCRE 語法的支援](tech-regex-pcre.md)
