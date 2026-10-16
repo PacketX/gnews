@@ -283,6 +283,14 @@ Run it on the host, not under `ip netns exec ran`: it enters the `ran` namespace
 
 **Not simulated:** 4G X2/S1 handover (S1AP's PathSwitchRequest and HandoverNotify share the tables and 4G has always parsed them, but no synthetic run has covered them), and 5G PDUSessionResourceModify / ModifyIndication, which are not parsed, so a modification that changes a tunnel is not followed.
 
+## A UE with two PDU sessions / bearers
+
+The table holds one node per UE (AMF/MME UE id + RAN UE id), but a VoLTE phone has two PDU sessions at once, internet and IMS, plus a dedicated bearer during a call; each has an uplink TEID of its own, and each PDU session its own UE address. The data path finds the node by one key in each direction: the TEID for an uplink G-PDU, the UE address for what comes back from the edge. So both sessions' keys must lead to the same node, or the moment IMS comes up the internet session no longer finds its UE and breakout stops without a word.
+
+Before 2026-10-14 the index was append-only: the first session's entry stayed, and a lookup compared keys without checking the node, so both were found -- a side effect of never deleting, not a design. The new index (6.6.261013.6 / 7.6.261013.5 on) has two rules that would each have dropped the first session: an entry whose key "moved to another session" is deleted, and a lookup hands out a node only after checking that the node still carries that key (the condition that lets every core read without a lock). So the node keeps one "previous" set (`teid_prev`, `pdn_ip_prev`): when the second session is set up the earlier TEID and address move there, their index entries stay, a lookup accepts either, and a release or eviction clears both; only a third session pushes the oldest out.
+
+Not done: the node knows "current" and "previous", not E-RAB ids or PDU session ids; and the downlink gNB tunnel is still one per node (a second response within 5 s of the first does not overwrite it), so re-encapsulation towards the UE uses the first session's gNB tunnel whichever address it is for -- enough for breaking out the internet session alone, not for IMS too. The bed's UEs each have one session (`sessions` in `ue-*.yaml` lists only internet, and `mecfill.py` makes one per UE), so this was derived from the code while writing the index and has not been run with a two-session UE; to verify it, add a second `sessions` entry to a UERANSIM UE (Open5GS must first give the subscriber a second DNN) and watch the tunnels in `get_s1ap_items` and each session's breakout.
+
 ## Breakout at GRISM, compared with an edge UPF
 
 3GPP's way is a UPF at the edge: in 5G an UL-CL / branching point steered by the SMF's N4 rules, in 4G a local S-GW/P-GW or LIPA/SIPTO. GRISM's way is an inline packet-processing box between the base stations and the core that learns each UE's cell and tunnels from the signalling and, by configuration, decapsulates chosen traffic and hands it to the edge. How they differ:

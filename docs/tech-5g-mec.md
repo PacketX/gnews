@@ -283,6 +283,14 @@ python3 /opt/5g/load/mecho.py n2 --count 200 --verify     # 同一批做 N2 換�
 
 **沒有模擬的:** 4G 的 X2/S1 換手(S1AP 的 PathSwitchRequest 與 HandoverNotify 走同一套表,4G 一向有解析,但沒有用合成訊令跑過);5G 的 PDUSessionResourceModify / ModifyIndication 目前不解析,改變隧道的那種修改 GRISM 不會跟到。
 
+## 一個 UE 有兩條 PDU session / bearer 時
+
+對應表一個 UE 一個節點(AMF/MME UE id + RAN UE id),但 VoLTE 手機同時有 internet 與 IMS 兩條 PDU session,通話時再多一條專用 bearer;每條各有自己的上行 TEID,PDU session 還各有自己的 UE 位址。資料路徑兩個方向各靠一把鍵找節點:上行 G-PDU 用 TEID,邊緣回來的下行用 UE 位址。所以兩條 session 的鍵都必須查得到同一個節點,否則 IMS 一建立,internet 那條就查不到 UE,breakout 會無聲地停掉。
+
+2026-10-14 之前的索引只增不刪:第一條的項目留在索引裡,查詢也只比對鍵、不核對節點,所以兩條都查得到——這是 append-only 的副作用,不是設計。新索引(6.6.261013.6 / 7.6.261013.5 起)有兩個規則,各自都會打掉第一條:鍵「搬到別的 session」時刪掉舊項目;查到節點後要確認節點本身還帶著那把鍵才交出去(多核心不上鎖讀的安全前提)。因此節點多記一組「前一個」(`teid_prev`、`pdn_ip_prev`):第二條建立時原本的 TEID 與位址移到那裡、索引項目保留,查詢兩個都接受,節點釋放或被淘汰時兩組一起從索引清掉;第三條進來才擠掉最舊的那條。
+
+還沒做的:節點只分「目前」與「前一個」,不記 E-RAB id / PDU session id;下行方向的 gNB 隧道仍是一個節點一組(第一條記下後,5 秒內來的第二條 response 不覆寫),所以回程重新封裝不論哪個位址都走第一條 session 的 gNB 隧道——只對 internet 做 breakout 夠用,要對 IMS 也做就得每條各記。測試床的 UE 都只有一條 session(`ue-*.yaml` 的 `sessions` 只列 internet,`mecfill.py` 也是一個 UE 一條),這段行為是寫索引時從程式推導的,還沒有用兩條 session 的 UE 驗證過;要驗證,在 UERANSIM 的 UE 設定加第二個 `sessions` 項目(Open5GS 要先給該用戶第二個 DNN),看 `get_s1ap_items` 的隧道與兩條 session 各自的 breakout。
+
 ## 在 GRISM 做 breakout,相較於邊緣 UPF 的優勢
 
 3GPP 的標準做法是在邊緣部署一個 UPF(5G 用 UL-CL/branching point 分流,4G 用本地 S-GW/P-GW 或 LIPA/SIPTO),由 SMF 下 N4 規則決定哪些流量就地落地。GRISM 的做法是把一台 inline 的封包處理設備放在基地台與核心網之間,從訊令學會每個 UE 的 cell 與隧道,再依設定把特定流量解封裝後交給邊緣。兩者的差別:
