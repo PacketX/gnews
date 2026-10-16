@@ -35,6 +35,13 @@ curl -k -b cookie.txt $GRISM/grism/task/get_current_user
 - The session **expires after 30 minutes without a request**, and every request renews it. A long-running script that meets a 404 signs in again.
 - `POST /logout` ends the session.
 
+**An automation need not sign in**: make a token under Settings → Login authentication → API tokens (it is shown once), and send `Authorization: Bearer <token>` with every request -- no cookie, no expiry unless the token was given one. A token has a level of its own (view / operator / config, **never admin**) and can be limited to source addresses or networks; the system log and the auth events name what it did as `token:<name>`. A token that is unknown, expired or used from an address outside its list is answered 404 like a missing session.
+
+```bash
+curl -k -H "Authorization: Bearer gpx_…" $GRISM/grism/task/get_current_user
+# {"username": "token:noc-agent", "priv": 5, "auth": "token"}
+```
+
 In Python, with the standard library only:
 
 ```python
@@ -199,6 +206,29 @@ A GET with nothing in its "Parameters" column takes none. "MIPS only" is the 6.6
 | `/grism/task/ack_alert` | POST | operator | JSON `key` (`*` for all) | acknowledge |
 | `/grism/task/test_alert_trap` | POST | config | JSON `trap_targets` | send a test trap |
 
+### Automation (agents)
+
+Calls made for programs rather than people: tokens, validation before a submit, a packet's path worked out, commit-confirm, what the device can do, and its events. The design is in [Letting automations and AI run GRISM](/en/tech-agent.md).
+
+| Endpoint | Method | Level | Parameters | What it does |
+|---|---|---|---|---|
+| `/grism/task/get_api_tokens` | GET | admin | — | the tokens (name, level, hosts, expiry, last use; never the token itself) |
+| `/grism/task/create_api_token` | POST JSON | admin | `name`, `priv` (1/5/10), `expires_days` (0 = never), `hosts` (IPv4 addresses or networks) | makes a token; the answer's `token` appears this once |
+| `/grism/task/delete_api_token` | POST JSON | admin | `name` | removes it, effective at once |
+| `/grism/task/validate` | POST | operator | `data` (the `<run>` XML) | checks without applying: XML, duplicate ids, filter/output/port references, every `<find>` name against this firmware's field catalogue; answers `valid`, `problems`, `warnings`, `summary` |
+| `/grism/task/trace` | GET / POST | view | `in` (ingress port, required), `src`, `dst`, `proto` (tcp/udp/sctp/icmp/arp or a number), `sport`, `dport`, `vlan`, `smac`, `dmac`, `tunnel` (none/gre/vxlan/gtp), `icmptype`, `live=1`; POST may add `data` to trace a candidate configuration | where the packet goes under the running configuration: filters the parameters decide are decided, the rest fork the path with what each path assumed; `live=1` attaches each filter's current counters |
+| `/grism/task/submitxml` | POST | operator | the usual, plus `confirm` (10–3600 s) | commit-confirm: the device keeps the file it runs now and puts it back unless `confirm_submit` arrives in time; answers `{pending, deadline, remaining}` |
+| `/grism/task/get_pending_submit` | GET | view | — | whether a submit awaits its confirm, the seconds left, who made it |
+| `/grism/task/confirm_submit` | POST | operator | — | keeps the submit |
+| `/grism/task/rollback_submit` | POST | operator | — | goes back to the previous file now |
+| `/grism/task/get_capabilities` | GET | view | — | what this device is and can do: model, firmware and engine versions, product line, ports (LOOP marked), management addresses, storages, the filter fields it accepts, table sizes and feature flags, memory, bypass pairs, and a map of the automation calls |
+| `/grism/task/get_events` | GET | view | `since` (event id), `kinds` (alert,config,engine,auth), `limit` | the last 500 events; those after `since`, polled with the answer's `last_id` |
+| `/grism/task/get_webhooks` | GET | config | — | the webhook targets (secrets shown as `********`) |
+| `/grism/task/set_webhooks` | POST JSON | config | `webhooks`: `[{name, url, secret, events, enable}]`, up to 8 | the whole list at once; a `secret` of `********` keeps the stored one; an empty `events` means every kind |
+| `/grism/task/test_webhook` | POST JSON | config | `name` | sends one `test` event to that target now; answers `{ok, error}` |
+
+An event is `{id, ts, kind, text, data}`, POSTed as JSON to each webhook with `X-Grism-Event: <kind>` and, when the hook has a secret, `X-Grism-Signature: sha256=<HMAC-SHA256(secret, body)>`. Kinds: `alert` (raised and cleared), `config` (submit, submit_instant, configSet, confirm, rollback), `engine` (the packet engine's processes changed: a restart or a crash), `auth` (a token made or removed, a failed sign-in).
+
 ### Firmware, components, backup and restore
 
 | Call | Method | Level | Parameters | What it does |
@@ -272,6 +302,23 @@ g.post_form("/grism/task/submit_config",
 ```
 
 Most settings take effect at once. One that changes how memory is laid out -- the size of a table, say -- only takes proper effect after a reboot: set `reboot` to `yes`, or call `reboot` afterwards.
+
+### Change the configuration with a token: validate, trace, then commit-confirm
+
+```bash
+T="Authorization: Bearer gpx_…"
+# 1. which ports and fields this device has
+curl -k -H "$T" $GRISM/grism/task/get_capabilities | jq '.ports[].name, .fields | length'
+# 2. check the new configuration without applying it
+curl -k -H "$T" --data-urlencode "data@new-run.xml" $GRISM/grism/task/validate | jq '.valid, .problems'
+# 3. where a packet would go under it (data= names the candidate; without it, the running one)
+curl -k -H "$T" --data-urlencode "data@new-run.xml" --data-urlencode "in=P1" --data-urlencode "src=10.1.1.5" \
+     --data-urlencode "dst=8.8.8.8" --data-urlencode "proto=udp" --data-urlencode "dport=53" $GRISM/grism/task/trace | jq '.paths'
+# 4. submit; it rolls back by itself unless confirmed within 60 s
+curl -k -H "$T" --data-urlencode "data@new-run.xml" --data-urlencode "filename=run.xml" --data-urlencode "confirm=60" $GRISM/grism/task/submitxml
+# 5. counters and reachability look right: keep it
+curl -k -H "$T" -X POST $GRISM/grism/task/confirm_submit
+```
 
 ### Load filters and chains, and read what they matched
 

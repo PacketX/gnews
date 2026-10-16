@@ -10,3 +10,4 @@
   - [5G、4G/NSA 測試環境與 MEC breakout](tech-5g-mec.md)
   - [regex 篩選器對 PCRE 語法的支援](tech-regex-pcre.md)
   - [Web API:可用的呼叫與使用方式](tech-web-api.md)
+  - [讓自動化與 AI 管理 GRISM](tech-agent.md)
