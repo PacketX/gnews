@@ -285,11 +285,13 @@ python3 /opt/5g/load/mecho.py n2 --count 200 --verify     # 同一批做 N2 換�
 
 ## 一個 UE 有兩條 PDU session / bearer 時
 
-對應表一個 UE 一個節點(AMF/MME UE id + RAN UE id),但 VoLTE 手機同時有 internet 與 IMS 兩條 PDU session,通話時再多一條專用 bearer;每條各有自己的上行 TEID,PDU session 還各有自己的 UE 位址。資料路徑兩個方向各靠一把鍵找節點:上行 G-PDU 用 TEID,邊緣回來的下行用 UE 位址。所以兩條 session 的鍵都必須查得到同一個節點,否則 IMS 一建立,internet 那條就查不到 UE,breakout 會無聲地停掉。
+對應表一個 UE 一個節點(AMF/MME UE id + RAN UE id),但 VoLTE 手機同時有 internet 與 IMS 兩條 PDU session,通話時再多一條專用 bearer;每條各有自己的上行 TEID,PDU session 還各有自己的 UE 位址。資料路徑兩個方向各靠一把鍵找節點:上行 G-PDU 用 TEID,邊緣回來的下行用 UE 位址。所以要被 breakout 的那條 session,它的鍵必須一直查得到節點,否則 breakout 會無聲地停掉。
+
+**4G 與 5G 不一樣。** 4G 的 S1AP 解析只取 E-RAB id 5(InitialContextSetup、E-RAB Setup 以及各種 modify/換手訊息皆然),其他 bearer 根本不進節點,所以 IMS 與通話的 bearer 不會影響上網那條的 breakout。代價是假設第一個 PDN 的預設 bearer 就是上網:一個以 IMS 為第一個 PDN 的網路,學到的會是 IMS。一份真實 4G 網路 10 分鐘的 S1AP 側錄(4,471 個 UE context)驗證了這個假設在那裡成立:3,469 個 InitialContextSetup 每一個都有 E-RAB 5、都是 QCI 7/9;196 個 UE 同時有兩條(另一條是 E-RAB 6、QCI 5 的 IMS),4 個有三條(再加 QCI 1 的語音)。5G 的 NGAP 沒有按 PDU session id 篩選,以下的「前一個」說的是 5G。
 
 2026-10-14 之前的索引只增不刪:第一條的項目留在索引裡,查詢也只比對鍵、不核對節點,所以兩條都查得到——這是 append-only 的副作用,不是設計。新索引(6.6.261013.6 / 7.6.261013.5 起)有兩個規則,各自都會打掉第一條:鍵「搬到別的 session」時刪掉舊項目;查到節點後要確認節點本身還帶著那把鍵才交出去(多核心不上鎖讀的安全前提)。因此節點多記一組「前一個」(`teid_prev`、`pdn_ip_prev`):第二條建立時原本的 TEID 與位址移到那裡、索引項目保留,查詢兩個都接受,節點釋放或被淘汰時兩組一起從索引清掉;第三條進來才擠掉最舊的那條。
 
-還沒做的:節點只分「目前」與「前一個」,不記 E-RAB id / PDU session id;下行方向的 gNB 隧道仍是一個節點一組(第一條記下後,5 秒內來的第二條 response 不覆寫),所以回程重新封裝不論哪個位址都走第一條 session 的 gNB 隧道——只對 internet 做 breakout 夠用,要對 IMS 也做就得每條各記。測試床的 UE 都只有一條 session(`ue-*.yaml` 的 `sessions` 只列 internet,`mecfill.py` 也是一個 UE 一條),這段行為是寫索引時從程式推導的,還沒有用兩條 session 的 UE 驗證過;要驗證,在 UERANSIM 的 UE 設定加第二個 `sessions` 項目(Open5GS 要先給該用戶第二個 DNN),看 `get_s1ap_items` 的隧道與兩條 session 各自的 breakout。
+還沒做的:節點只分「目前」與「前一個」,不記 PDU session id;一則訊息裡帶好幾條 session 時(例如 UE 從閒置回到連線,InitialContextSetupRequest 一次重建所有 session)只記清單裡最後一條,若最後一條是 IMS,上網那條在這次連線期間就不會 breakout;第三條隧道會擠掉最舊的,而最舊的不一定已經不用。VoNR 的通話是在 IMS session 裡加 QoS flow、不加隧道,所以 5G 的第三條比 4G 少見。下行方向的 gNB 隧道仍是一個節點一組(第一條記下後,5 秒內來的第二條 response 不覆寫),所以回程重新封裝不論哪個位址都走第一條 session 的 gNB 隧道——只對 internet 做 breakout 夠用,要對 IMS 也做就得每條各記。測試床的 UE 都只有一條 session(`ue-*.yaml` 的 `sessions` 只列 internet,`mecfill.py` 也是一個 UE 一條),這段行為是寫索引時從程式推導的,還沒有用兩條 session 的 UE 驗證過;要驗證,在 UERANSIM 的 UE 設定加第二個 `sessions` 項目(Open5GS 要先給該用戶第二個 DNN),看 `get_s1ap_items` 的隧道與兩條 session 各自的 breakout。
 
 ## 在 GRISM 做 breakout,相較於邊緣 UPF 的優勢
 
