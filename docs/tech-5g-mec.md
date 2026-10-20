@@ -287,7 +287,7 @@ python3 /opt/5g/load/mecho.py n2 --count 200 --verify     # 同一批做 N2 換�
 
 對應表一個 UE 一個節點(AMF/MME UE id + RAN UE id),但 VoLTE 手機同時有 internet 與 IMS 兩條 PDU session,通話時再多一條專用 bearer;每條各有自己的上行 TEID,PDU session 還各有自己的 UE 位址。資料路徑兩個方向各靠一把鍵找節點:上行 G-PDU 用 TEID,邊緣回來的下行用 UE 位址。所以要被 breakout 的那條 session,它的鍵必須一直查得到節點,否則 breakout 會無聲地停掉。
 
-**4G 與 5G 不一樣。** 4G 的 S1AP 解析只取 E-RAB id 5(InitialContextSetup、E-RAB Setup 以及各種 modify/換手訊息皆然),其他 bearer 根本不進節點,所以 IMS 與通話的 bearer 不會影響上網那條的 breakout。代價是假設第一個 PDN 的預設 bearer 就是上網:一個以 IMS 為第一個 PDN 的網路,學到的會是 IMS。一份真實 4G 網路 10 分鐘的 S1AP 側錄(4,471 個 UE context)驗證了這個假設在那裡成立:3,469 個 InitialContextSetup 每一個都有 E-RAB 5、都是 QCI 7/9;196 個 UE 同時有兩條(另一條是 E-RAB 6、QCI 5 的 IMS),4 個有三條(再加 QCI 1 的語音)。5G 沒有對應 E-RAB 5 的固定 id,以下說的是 5G。
+**4G 與 5G 不一樣。** 4G 的 S1AP 解析只取 E-RAB id 5(InitialContextSetup、E-RAB Setup 以及各種 modify/換手訊息皆然),其他 bearer 根本不進節點,所以 IMS 與通話的 bearer 不會影響上網那條的 breakout。代價是假設第一個 PDN 的預設 bearer 就是上網:一個以 IMS 為第一個 PDN 的網路,學到的會是 IMS。一份真實 4G 網路約 3 小時的 S1AP 側錄(兩天、18 段,88,837 個 UE context)檢查了這個假設:85,912 個 InitialContextSetup 裡,E-RAB 5 是上網 bearer(QCI 6–9)的佔 99.97%;不成立的 26 個(0.03%)當中,22 個的 E-RAB 5 是 IMS(QCI 5)、上網在另一個 id,GRISM 學到的是 IMS;4 個根本沒有 E-RAB 5,這個 UE 不會被學到。另有 4 個只有 IMS bearer,沒有上網可 breakout。同時有兩條 bearer 的 UE 佔 4.5%(幾乎都是 QCI 7 上網 + QCI 5 IMS),三條的 23 個(再加 QCI 1 的語音或 QCI 8)。5G 沒有對應 E-RAB 5 的固定 id,以下說的是 5G。
 
 2026-10-14 之前的索引只增不刪:第一條的項目留在索引裡,查詢也只比對鍵、不核對節點,所以兩條都查得到——這是 append-only 的副作用,不是設計。新索引(6.6.261013.6 / 7.6.261013.5 起)有兩個規則,各自都會打掉第一條:鍵「搬到別的 session」時刪掉舊項目;查到節點後要確認節點本身還帶著那把鍵才交出去(多核心不上鎖讀的安全前提)。因此節點多記一組「前一個」(`teid_prev`、`pdn_ip_prev`):第二條建立時原本的 TEID 與位址移到那裡、索引項目保留,查詢兩個都接受,節點釋放或被淘汰時兩組一起從索引清掉;第三條進來才擠掉最舊的那條。
 
