@@ -287,16 +287,16 @@ python3 /opt/5g/load/mecho.py n2 --count 200 --verify     # 同一批做 N2 換�
 
 對應表一個 UE 一個節點(AMF/MME UE id + RAN UE id),但 VoLTE 手機同時有 internet 與 IMS 兩條 PDU session,通話時再多一條專用 bearer;每條各有自己的上行 TEID,PDU session 還各有自己的 UE 位址。資料路徑兩個方向各靠一把鍵找節點:上行 G-PDU 用 TEID,邊緣回來的下行用 UE 位址。所以要被 breakout 的那條 session,它的鍵必須一直查得到節點,否則 breakout 會無聲地停掉。
 
-**4G 與 5G 不一樣。** 4G 的 S1AP 解析只取 E-RAB id 5(InitialContextSetup、E-RAB Setup 以及各種 modify/換手訊息皆然),其他 bearer 根本不進節點,所以 IMS 與通話的 bearer 不會影響上網那條的 breakout。代價是假設第一個 PDN 的預設 bearer 就是上網:一個以 IMS 為第一個 PDN 的網路,學到的會是 IMS。一份真實 4G 網路約 3 小時的 S1AP 側錄(兩天、18 段,88,837 個 UE context)檢查了這個假設:85,912 個 InitialContextSetup 裡,E-RAB 5 是上網 bearer(QCI 6–9)的佔 99.97%;不成立的 26 個(0.03%)當中,22 個的 E-RAB 5 是 IMS(QCI 5)、上網在另一個 id,GRISM 學到的是 IMS;4 個根本沒有 E-RAB 5,這個 UE 不會被學到。另有 4 個只有 IMS bearer,沒有上網可 breakout。同時有兩條 bearer 的 UE 佔 4.5%(幾乎都是 QCI 7 上網 + QCI 5 IMS),三條的 23 個(再加 QCI 1 的語音或 QCI 8)。5G 沒有對應 E-RAB 5 的固定 id,以下說的是 5G。
+**4G 與 5G 不一樣。** 4G 的 S1AP 解析只取 E-RAB id 5(InitialContextSetup、E-RAB Setup 以及各種 modify/換手訊息皆然),其他 bearer 根本不進節點,所以 IMS 與通話的 bearer 不會影響上網那條的 breakout。代價是假設第一個 PDN 的預設 bearer 就是上網(引擎 2.11.25 / 2.9.28 起改了,見下)。一份真實 4G 網路約 3 小時的 S1AP 側錄(兩天、18 段,88,837 個 UE context)檢查了這個假設:85,912 個 InitialContextSetup 裡,E-RAB 5 是上網 bearer(QCI 6–9)的佔 99.97%;不成立的 26 個(0.03%)當中,22 個的 E-RAB 5 是 IMS(QCI 5)、上網在另一個 id,GRISM 學到的是 IMS;4 個根本沒有 E-RAB 5,這個 UE 不會被學到。另有 4 個只有 IMS bearer,沒有上網可 breakout。同時有兩條 bearer 的 UE 佔 4.5%(幾乎都是 QCI 7 上網 + QCI 5 IMS),三條的 23 個(再加 QCI 1 的語音或 QCI 8)。5G 沒有對應 E-RAB 5 的固定 id。
 
 2026-10-14 之前的索引只增不刪:第一條的項目留在索引裡,查詢也只比對鍵、不核對節點,所以兩條都查得到——這是 append-only 的副作用,不是設計。新索引(6.6.261013.6 / 7.6.261013.5 起)有兩個規則,各自都會打掉第一條:鍵「搬到別的 session」時刪掉舊項目;查到節點後要確認節點本身還帶著那把鍵才交出去(多核心不上鎖讀的安全前提)。因此節點多記一組「前一個」(`teid_prev`、`pdn_ip_prev`):第二條建立時原本的 TEID 與位址移到那裡、索引項目保留,查詢兩個都接受,節點釋放或被淘汰時兩組一起從索引清掉;第三條進來才擠掉最舊的那條。
 
-**5G 的兩個問題與修正(引擎 2.11.24 / 2.9.27,待釋出)。** 節點只有一組隧道,資料路徑也只從「目前」那條上行學 UE 位址、更新 ARP 與閒置時間。修正前有兩種情況會讓 internet 那條失去 breakout,都在實機上重現過:
+**5G 的兩個問題與修正(引擎 2.11.25 / 2.9.28,待釋出)。** 節點只有一組隧道,資料路徑也只從「目前」那條上行學 UE 位址、更新 ARP 與閒置時間。修正前有兩種情況會讓 internet 那條失去 breakout,都在實機上重現過:
 
 - **先建 internet、後建 IMS**(支援 VoNR 的手機註冊後最常見的流程):IMS 變成「目前」那條;PDUSessionResourceSetupResponse 又一律覆寫下行隧道,於是邊緣送給 internet 位址的回程被包進 IMS 的 gNB 隧道。先前這裡寫的「5 秒內的第二條 response 不覆寫」只對 InitialContextSetupResponse 成立。
 - **UE 從閒置回到連線**:InitialContextSetupRequest 一次帶回所有 session,但只記清單最後一條。最後一條是 IMS 時,internet 根本不在表裡,回程直接被丟掉。
 
-修正後,節點記住它跟的是哪個 PDU session id(每個節點多 1 byte)。新節點跟清單裡最後一條不是 IMS 的 session;IMS 以 QoS flow 的 5QI 是否為 5 判斷(GSMA NG.114),因為 DNN 在加密的 NAS 裡看不到。IMS session 不會取代一條不是 IMS 的 session;其他 session 的上行 TEID 留作「前一個」,所以上行照樣查得到節點與 cell;回應只取跟的那條的下行隧道。單一 session、兩條都不是 IMS、先建 IMS 這三種情況,結果與修正前相同。4G 和換手流程都沒有改。
+修正後,節點記住它跟的是哪個 PDU session id(每個節點多 1 byte)。新節點跟清單裡最後一條不是 IMS 的 session;IMS 以 QoS flow 的 5QI 是否為 5 判斷(GSMA NG.114),因為 DNN 在加密的 NAS 裡看不到。IMS session 不會取代一條不是 IMS 的 session;其他 session 的上行 TEID 留作「前一個」,所以上行照樣查得到節點與 cell;回應只取跟的那條的下行隧道。單一 session、兩條都不是 IMS、先建 IMS 這三種情況,結果與修正前相同。換手流程沒有改。
 
 驗證(2026-10-19,`tools/test/mec/pdu2.py`,七種情境各為一個 UE):
 
@@ -306,7 +306,9 @@ python3 /opt/5g/load/mecho.py n2 --count 200 --verify     # 同一批做 N2 換�
 | 同一台加壓:灌 30,000 個單一 session、2,100 個多 session,再釋放 15,000 個 | — | 2,100/2,100 正確;三個索引的計數與推算一致、釋放後各少 15,000;0 丟包,引擎沒有重啟 |
 | HL1 從 LOOP 埠回放 | 同上 | 7/7;50 份共 350 個 UE 也 350/350 |
 
-仍未處理:換手(Xn / N2)產生的節點不知道自己跟哪條 session,之後的行為與修正前相同;一則換手訊息帶多條 session 時,暫存表仍只記最後一條。
+**4G 用同樣的方式。** E-RAB 5 是上網的時候(那份側錄的 99.97%)結果與以前完全相同;不同的只有其餘情況:E-RAB 5 是 IMS 時改跟另一條非 GBR、非 IMS 的 bearer(QCI 1–5 不跟),沒有 E-RAB 5 時也跟那一條,不再整個 UE 學不到。節點同樣記住跟的 E-RAB id,後來加上的通話 bearer 不會取代它,回應與 ModificationIndication 只取那條的隧道;X2 path switch 與 S1 handover 也照節點跟的那條取隧道,並把它帶到新節點。其他 bearer 仍不進索引,和以前一樣。驗證(2026-10-20,`tools/test/mec/lte2.py`,十種情境):G8S-MEC 實體埠 10/10、下行都包進該跟的 bearer 的 eNB 隧道,舊韌體 6/10(E-RAB 5 是 IMS 或沒有 E-RAB 5 的四種都失去回程);加壓 1,000 個 4G UE 加 20,000 個 5G 同時灌入,1,000/1,000,0 丟包;5G 的七種情境照樣 7/7。HL1 從 LOOP 埠回放,換手以外的八種 240/240;4G X2 path switch 在 HL1 的 LOOP 回放上新舊韌體都會掉(單份約一半、30 份全掉),不是這次造成的,原因還沒查。
+
+仍未處理:5G 換手(Xn / N2)產生的節點不知道自己跟哪條 session,之後的行為與修正前相同;一則換手訊息帶多條 session 時,暫存表仍只記最後一條。
 
 ## 在 GRISM 做 breakout,相較於邊緣 UPF 的優勢
 
