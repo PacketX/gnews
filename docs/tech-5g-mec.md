@@ -308,6 +308,8 @@ python3 /opt/5g/load/mecho.py n2 --count 200 --verify     # 同一批做 N2 換�
 
 **4G 用同樣的方式。** E-RAB 5 是上網的時候(那份側錄的 99.97%)結果與以前完全相同;不同的只有其餘情況:E-RAB 5 是 IMS 時改跟另一條非 GBR、非 IMS 的 bearer(QCI 1–5 不跟),沒有 E-RAB 5 時也跟那一條,不再整個 UE 學不到。節點同樣記住跟的 E-RAB id,後來加上的通話 bearer 不會取代它,回應與 ModificationIndication 只取那條的隧道;X2 path switch 與 S1 handover 也照節點跟的那條取隧道,並把它帶到新節點。其他 bearer 仍不進索引,和以前一樣。驗證(2026-10-20,`tools/test/mec/lte2.py`,十種情境):G8S-MEC 實體埠 10/10、下行都包進該跟的 bearer 的 eNB 隧道,舊韌體 6/10(E-RAB 5 是 IMS 或沒有 E-RAB 5 的四種都失去回程);加壓 1,000 個 4G UE 加 20,000 個 5G 同時灌入,1,000/1,000,0 丟包;5G 的七種情境照樣 7/7。HL1 從 LOOP 埠回放,換手以外的八種 240/240;4G X2 path switch 在 HL1 的 LOOP 回放上新舊韌體都會掉(單份約一半、30 份全掉),不是這次造成的,原因還沒查。
 
+**用那份真實側錄驗證(2026-10-21)。** 18 段側錄以 10 倍速從基地台側送進 G8S-MEC 的實體埠,每段結束後讀回整張對應表,和只從 S1AP 推算出的應有內容比對(`tools/test/mec/mecbulk.py`、`s1gt.py`、`mecbulkcmp.py`)。新韌體:13,801 個一般 UE、22 個上網不在 E-RAB 5 的 UE、426 個經 X2 path switch 的 UE,上下行隧道全部正確;同一段回放七次,其中一次有 2 個 UE 的 cell 錯,其餘六次全對,原因還沒找到(只有 cell,隧道正確)。修正前的 6.6.261005.6:那 22 個當中 14 個跟到 IMS 的隧道、2 個沒有節點;另有 874 個 UE 的 cell 錯,因為兩台 eNB 的 UE id 取自同一段號碼,而舊版只用 id 當鍵(10/12 已修)。兩版都 0 丟包、引擎沒有重啟。
+
 仍未處理:5G 換手(Xn / N2)產生的節點不知道自己跟哪條 session,之後的行為與修正前相同;一則換手訊息帶多條 session 時,暫存表仍只記最後一條。
 
 ## 在 GRISM 做 breakout,相較於邊緣 UPF 的優勢
