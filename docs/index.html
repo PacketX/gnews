@@ -34,6 +34,16 @@
       }
     }
   </script>
+  <script>
+    // tools embedded with <iframe data-autoheight> report their height; size the frame to it
+    window.addEventListener('message', function (e) {
+      var h = e.data && e.data.listLimitsHeight;
+      if (!h) return;
+      document.querySelectorAll('iframe[data-autoheight]').forEach(function (f) {
+        if (f.contentWindow === e.source) f.style.height = (h + 4) + 'px';
+      });
+    });
+  </script>
   <script src="//unpkg.com/docsify/lib/docsify.min.js"></script>
 </body>
 </html>

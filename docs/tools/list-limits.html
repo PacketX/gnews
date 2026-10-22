@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>List Limits</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #2c3e50; --muted: #6a737d; --line: #e5e8eb; --card: #f8f9fa;
+    --accent: #42b983; --ok: #2e9e6a; --warn: #c98a00; --bad: #d64545;
+    --v6: #7b61c9; --xml: #3a8ee6; --free: #dfe3e8;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--fg);
+    font: 14px/1.5 -apple-system, "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; }
+  .wrap { padding: 16px; max-width: 860px; }
+  h3 { margin: 0 0 4px; font-size: 16px; }
+  .sub { color: var(--muted); font-size: 12.5px; margin-bottom: 14px; }
+  .row { display: grid; grid-template-columns: 120px 1fr 120px; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .row label { font-weight: 600; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+  .row input[type=range] { width: 100%; accent-color: var(--accent); }
+  .row input[type=number] { width: 100%; padding: 4px 6px; border: 1px solid var(--line); border-radius: 4px; font: inherit; text-align: right; color: var(--fg); background: var(--bg); }
+  .max { grid-column: 2 / 4; font-size: 12.5px; color: var(--muted); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: -4px; }
+  .max b { color: var(--fg); font-variant-numeric: tabular-nums; }
+  button { font: inherit; font-size: 12px; padding: 2px 8px; border: 1px solid var(--accent); color: var(--accent); background: transparent; border-radius: 4px; cursor: pointer; }
+  button:hover { background: var(--accent); color: #fff; }
+  .bar { display: flex; height: 18px; border-radius: 4px; overflow: hidden; margin: 16px 0 4px; background: var(--free); }
+  .bar div { height: 100%; transition: width .15s; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 13px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .chip { display: inline-block; padding: 0 8px; border-radius: 10px; font-size: 12px; font-weight: 600; color: #fff; white-space: nowrap; }
+  .chip.ok { background: var(--ok); } .chip.warn { background: var(--warn); } .chip.bad { background: var(--bad); } .chip.na { background: var(--free); color: var(--muted); }
+  .verdict { margin-top: 14px; padding: 10px 12px; border-radius: 6px; background: var(--card); border-left: 4px solid var(--accent); }
+  .verdict.bad { border-left-color: var(--bad); } .verdict.warn { border-left-color: var(--warn); }
+  details { margin-top: 14px; font-size: 12.5px; color: var(--muted); }
+  details summary { cursor: pointer; }
+  .adv { display: grid; grid-template-columns: 1fr 110px; gap: 6px 10px; align-items: center; margin-top: 8px; max-width: 460px; }
+  .adv input { padding: 3px 6px; border: 1px solid var(--line); border-radius: 4px; font: inherit; text-align: right; color: var(--fg); background: var(--bg); }
+  @media (max-width: 560px) {
+    .row { grid-template-columns: 1fr 110px; }
+    .row label { grid-column: 1 / 3; }
+    .max { grid-column: 1 / 3; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h3 id="t-title"></h3>
+  <div class="sub" id="t-sub"></div>
+
+  <div class="row">
+    <label for="n-ipv6">ipv6.addr</label>
+    <input type="range" id="r-ipv6" min="0" max="16000" step="100">
+    <input type="number" id="n-ipv6" min="0" max="16000" step="100">
+    <div class="max"><span id="m-ipv6"></span><button data-max="ipv6"></button></div>
+  </div>
+  <div class="row">
+    <label for="n-ip">ip.addr</label>
+    <input type="range" id="r-ip" min="0" max="2000000" step="10000">
+    <input type="number" id="n-ip" min="0" max="2000000" step="10000">
+    <div class="max"><span id="m-ip"></span><button data-max="ip"></button></div>
+  </div>
+  <div class="row">
+    <label for="n-dns">dns.qry.name</label>
+    <input type="range" id="r-dns" min="0" max="1500000" step="10000">
+    <input type="number" id="n-dns" min="0" max="1500000" step="10000">
+    <div class="max"><span id="m-dns"></span><button data-max="dns"></button></div>
+  </div>
+
+  <div class="bar" id="bar"><div id="b-v6" style="background:var(--v6)"></div><div id="b-xml" style="background:var(--xml)"></div></div>
+  <div class="legend" id="legend"></div>
+
+  <table>
+    <thead><tr><th id="h-op"></th><th id="h-need"></th><th class="num" id="h-slack"></th><th id="h-res"></th></tr></thead>
+    <tbody id="ops"></tbody>
+  </table>
+  <div class="verdict" id="verdict"></div>
+
+  <details>
+    <summary id="t-adv"></summary>
+    <div class="adv">
+      <span id="a-f0"></span><input type="number" id="f0" value="340" step="5">
+      <span id="a-dnslen"></span><input type="number" id="dnslen" value="24" step="1" min="1" max="253">
+      <span id="a-warn"></span><input type="number" id="warnm" value="10" step="1" min="0">
+    </div>
+    <p id="t-model"></p>
+  </details>
+</div>
+<script>
+(function () {
+  "use strict";
+  var EN = /[?&]lang=en\b/.test(location.search);
+  var T = EN ? {
+    title: "How many entries the three lists can hold together",
+    sub: "G8S, firmware 6.5.260910, flow tables IPv4 160,000 (flowCacheBaseSize 10000) / IPv6 50,000. Each list in its own filter-only runN.xml, updated by uploading a new file over the old one. A model fitted to the measurements on this page, not a guarantee.",
+    max: "most with the other two as set:", setmax: "use", adv: "Model parameters",
+    f0: "Memory free after boot (MiB)", dnslen: "Average domain-name length (characters)", warn: "Below this headroom it is borderline (MiB)",
+    op: "Operation", need: "What has to fit", slack: "Headroom", res: "Result",
+    ok: "OK", warn2: "borderline", bad: "fails", na: "—",
+    o_ip: "Upload a new ip.addr list over the old one", o_dns: "Upload a new dns.qry.name list over the old one",
+    o_v6: "Upload a new ipv6.addr list over the old one", o_re: "Full reload (any ipv6 list update, a run.xml change)",
+    n_gdp: "every list's XML + the new file + 36 MiB + 1.8x the new file to parse it + the IPv6 tables",
+    n_v6: "about 110 MiB left after the IPv6 tables and every list's XML",
+    n_re: "2.5x the largest ip/dns XML to parse it again",
+    f_gdp: "the log says parse error: out of memory; the old list stays in force",
+    f_v6: "nothing in the log; the new file is not taken and the old list stays",
+    f_re: "that list fails to parse and its filter disappears until the next reload that fits",
+    leg_v6: "IPv6 tables in the engine", leg_xml: "list XML kept in RAM (tmpfs)", leg_free: "free",
+    v_ok: "Every list can be updated and a full reload keeps all three.",
+    v_warn: "Fits, but with little headroom: the measured runs at this headroom passed some times and failed others.",
+    v_bad: "Does not fit: ",
+    model: "Model: memory free after boot F (340 MiB measured). IPv6: 18.8 KiB per entry in the engine (a per-core bit radix tree). XML in RAM: 61 bytes a line for ip.addr, 52 + name length for dns.qry.name, 88 for ipv6.addr. Uploading an ip/dns list needs F - IPv6 - all XML - new XML >= 36 MiB + 1.8 x new XML; an IPv6 upload needs F - IPv6 - all XML >= 110 MiB; a full reload needs F - IPv6 - all XML >= 2.5 x the largest ip/dns XML. Fitted to 16 measured pass/fail points and checked against one more predicted beforehand; bootmem is not the limit at these sizes."
+  } : {
+    title: "三種清單同時放上去，各能放幾筆",
+    sub: "G8S,韌體 6.5.260910,flow table IPv4 160,000(flowCacheBaseSize 10000)/ IPv6 50,000。每種清單各自一個只有 filter 的 runN.xml,以新檔直接覆蓋舊檔的方式更新。依本頁量測結果擬合的模型，不是保證值。",
+    max: "其他兩項維持目前設定時最多:", setmax: "套用", adv: "模型參數",
+    f0: "開機後可用記憶體(MiB)", dnslen: "網域名稱平均長度(字元)", warn: "餘裕低於此值視為臨界(MiB)",
+    op: "動作", need: "需要放得下", slack: "餘裕", res: "結果",
+    ok: "可以", warn2: "臨界", bad: "失敗", na: "—",
+    o_ip: "上傳新的 ip.addr 清單覆蓋舊的", o_dns: "上傳新的 dns.qry.name 清單覆蓋舊的",
+    o_v6: "上傳新的 ipv6.addr 清單覆蓋舊的", o_re: "完整 reload(更新 ipv6 清單、修改 run.xml 都會觸發)",
+    n_gdp: "所有清單的 XML + 新檔 + 解析新檔的 36 MiB + 1.8 倍空間 + IPv6 表",
+    n_v6: "扣掉 IPv6 表和所有 XML 後還要剩約 110 MiB",
+    n_re: "重新解析最大的 ip/dns XML 需要 2.5 倍空間",
+    f_gdp: "log 出現 parse error: out of memory,舊清單繼續生效",
+    f_v6: "log 沒有錯誤，新檔沒被採用，舊清單繼續生效",
+    f_re: "該清單解析失敗，它的 filter 會消失，直到下一次放得下的 reload",
+    leg_v6: "引擎裡的 IPv6 表", leg_xml: "留在記憶體(tmpfs)的清單 XML", leg_free: "剩餘",
+    v_ok: "三種清單都能更新，完整 reload 也不會掉任何一份。",
+    v_warn: "放得下，但餘裕很小：實測在這個餘裕下有時成功、有時失敗。",
+    v_bad: "放不下：",
+    model: "模型：開機後可用記憶體 F(實測 340 MiB)。IPv6 每筆在引擎裡約 18.8 KiB(每個核心各一份逐 bit radix tree)。留在記憶體的 XML:ip.addr 每行 61 bytes,dns.qry.name 每行 52 + 名稱長度,ipv6.addr 每行 88。上傳 ip/dns 清單需要 F − IPv6 − 所有 XML − 新 XML ≥ 36 MiB + 1.8 × 新 XML;上傳 IPv6 清單需要 F − IPv6 − 所有 XML ≥ 110 MiB;完整 reload 需要 F − IPv6 − 所有 XML ≥ 2.5 × 最大的 ip/dns XML。以 16 個實測成功/失敗點擬合，並以一組事先預測的組合驗證;這些大小下 bootmem 不是限制。"
+  };
+  document.documentElement.lang = EN ? "en" : "zh-TW";
+
+  var R6 = 0.0188, PA = 36, PB = 1.8, V6_M = 110, K = 2.5, MiB = 1048576;
+  var CAP = { ipv6: 16000, ip: 2000000, dns: 1500000 }, STEP = { ipv6: 100, ip: 10000, dns: 10000 };
+  var n = { ipv6: 4000, ip: 500000, dns: 500000 };
+  var $ = function (id) { return document.getElementById(id); };
+  function fmt(x) { return Math.round(x).toLocaleString("en-US"); }
+  function par() {
+    return { F: +$("f0").value || 340, L: Math.max(1, +$("dnslen").value || 24), W: Math.max(0, +$("warnm").value) };
+  }
+  function xml(t, c, p) { return c * (t === "ip" ? 61.1 : t === "dns" ? 52 + p.L : 87.6) / MiB; }
+
+  // every operation the lists have to survive, with its headroom in MiB
+  function ops(v, p) {
+    var X = { ip: xml("ip", v.ip, p), dns: xml("dns", v.dns, p), ipv6: xml("ipv6", v.ipv6, p) };
+    var all = X.ip + X.dns + X.ipv6, r6 = v.ipv6 * R6, base = p.F - r6 - all, out = [];
+    if (v.ip) out.push({ k: "ip", op: T.o_ip, need: T.n_gdp, fail: T.f_gdp, s: base - X.ip - (PA + PB * X.ip) });
+    if (v.dns) out.push({ k: "dns", op: T.o_dns, need: T.n_gdp, fail: T.f_gdp, s: base - X.dns - (PA + PB * X.dns) });
+    if (v.ipv6) out.push({ k: "v6", op: T.o_v6, need: T.n_v6, fail: T.f_v6, s: base - V6_M });
+    if (v.ip || v.dns || v.ipv6) out.push({ k: "re", op: T.o_re, need: T.n_re, fail: T.f_re, s: base - K * Math.max(X.ip, X.dns) });
+    return { list: out, r6: r6, all: all };
+  }
+  function fits(v, p) { return ops(v, p).list.every(function (o) { return o.s >= 0; }); }
+  function maxOf(t, p) {
+    var lo = 0, hi = CAP[t], v = Object.assign({}, n);
+    v[t] = 0; if (!fits(v, p)) return 0;
+    while (hi - lo > 1) { var mid = (lo + hi) >> 1; v[t] = mid; if (fits(v, p)) lo = mid; else hi = mid; }
+    return lo;
+  }
+  function chip(s, p) {
+    if (s < 0) return '<span class="chip bad">' + T.bad + "</span>";
+    if (s < p.W) return '<span class="chip warn">' + T.warn2 + "</span>";
+    return '<span class="chip ok">' + T.ok + "</span>";
+  }
+  function render() {
+    var p = par(), r = ops(n, p);
+    ["ipv6", "ip", "dns"].forEach(function (t) {
+      $("r-" + t).value = n[t]; if (document.activeElement !== $("n-" + t)) $("n-" + t).value = n[t];
+      var m = maxOf(t, p); $("m-" + t).innerHTML = T.max + " <b>" + fmt(m) + "</b>";
+      var b = document.querySelector('[data-max="' + t + '"]'); b.textContent = T.setmax; b.dataset.v = m;
+    });
+    var used = Math.min(p.F, r.r6 + r.all);
+    $("b-v6").style.width = (100 * Math.min(r.r6, p.F) / p.F) + "%";
+    $("b-xml").style.width = (100 * Math.max(0, used - Math.min(r.r6, p.F)) / p.F) + "%";
+    $("legend").innerHTML = '<span><i style="background:var(--v6)"></i>' + T.leg_v6 + " " + fmt(r.r6) + " MiB</span>" +
+      '<span><i style="background:var(--xml)"></i>' + T.leg_xml + " " + fmt(r.all) + " MiB</span>" +
+      '<span><i style="background:var(--free)"></i>' + T.leg_free + " " + fmt(Math.max(0, p.F - r.r6 - r.all)) + " / " + fmt(p.F) + " MiB</span>";
+    $("ops").innerHTML = r.list.length ? r.list.map(function (o) {
+      return "<tr><td>" + o.op + (o.s < 0 ? '<br><span style="color:var(--bad);font-size:12px">' + o.fail + "</span>" : "") +
+        "</td><td>" + o.need + '</td><td class="num">' + (o.s >= 0 ? "+" : "") + o.s.toFixed(1) + " MiB</td><td>" + chip(o.s, p) + "</td></tr>";
+    }).join("") : '<tr><td colspan="4"><span class="chip na">' + T.na + "</span></td></tr>";
+    var worst = r.list.reduce(function (a, o) { return Math.min(a, o.s); }, Infinity), v = $("verdict");
+    if (worst < 0) {
+      v.className = "verdict bad";
+      v.textContent = T.v_bad + r.list.filter(function (o) { return o.s < 0; }).map(function (o) { return o.op; }).join(EN ? "; " : ";");
+    } else if (worst < p.W) { v.className = "verdict warn"; v.textContent = T.v_warn; }
+    else { v.className = "verdict"; v.textContent = T.v_ok; }
+  }
+  function set(t, val) { n[t] = Math.max(0, Math.min(CAP[t], Math.round(+val || 0))); render(); }
+
+  ["title", "sub", "adv", "model"].forEach(function (k) { $("t-" + k).textContent = T[k]; });
+  $("a-f0").textContent = T.f0; $("a-dnslen").textContent = T.dnslen; $("a-warn").textContent = T.warn;
+  $("h-op").textContent = T.op; $("h-need").textContent = T.need; $("h-slack").textContent = T.slack; $("h-res").textContent = T.res;
+  ["ipv6", "ip", "dns"].forEach(function (t) {
+    $("r-" + t).addEventListener("input", function (e) { set(t, e.target.value); });
+    $("n-" + t).addEventListener("input", function (e) { set(t, e.target.value); });
+    $("n-" + t).addEventListener("change", function () { render(); });
+    document.querySelector('[data-max="' + t + '"]').addEventListener("click", function (e) { set(t, e.target.dataset.v); });
+  });
+  ["f0", "dnslen", "warnm"].forEach(function (id) { $(id).addEventListener("input", render); });
+  render();
+  // tell the page around the iframe how tall this is
+  function post() { try { parent.postMessage({ listLimitsHeight: document.documentElement.scrollHeight }, "*"); } catch (e) {} }
+  new ResizeObserver(post).observe(document.body); post();
+})();
+</script>
+</body>
+</html>
