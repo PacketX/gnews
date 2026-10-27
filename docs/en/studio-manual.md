@@ -150,6 +150,8 @@ These three tabs sit in the "Advanced" group and show when it is opened.
 
 > ⚠️ `replayPcap` **transmits out of the port** rather than injecting ingress traffic. For the packets to enter the pipeline the port has to be a LOOP port.
 
+Replay pacing is one of three, the first that is set winning: a fixed interval (`msinterval`, ms), a fixed rate (`speed`, Mbps; `-1` is as fast as the port takes), or the capture's own timing, which the **speed ratio** (`ratio`) scales: `25` plays 25 times faster, `0.5` at half speed (firmware 2.11.32 / 2.9.35 and later; older firmware ignores the field).
+
 **Outputs** — named outputs (`O1`, `O2`…), which can:
 
 - rewrite the packet (MAC / IP / ports / TCP MSS)
