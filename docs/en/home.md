@@ -1,3 +1,35 @@
+## GRISM-7.6.261028.1
+\- function added \-
+- an automation interface: API tokens, configuration validation and path tracing, a submit that rolls back unless confirmed in time, a device capability query, an event feed and webhooks (Settings → API tokens / Webhooks)
+- a replay input takes a speed ratio, playing a capture at a multiple of its own pace
+
+\- MEC \-
+- the table follows the UE's internet bearer / PDU session: on 4G it is learned when the internet bearer is not E-RAB 5, and IMS and voice bearers are no longer taken for it; on 5G an IMS session (by 5QI) is passed over
+- 5G PDU session modify (PDUSessionResourceModify and ModifyIndication) is parsed: when a session's tunnel moves, breakout follows the new one
+- a UE with several PDU sessions keeps its internet session's tunnels and cell across a handover (Xn / N2)
+- E-RAB release and PDU session release are parsed: when the internet bearer / session is released its entry goes with it, and one set up again uses its new tunnel
+- SCTP fragments are reassembled per association, stream and sequence number: base stations sending fragmented messages with the same sequence number at once no longer disturb each other
+- handover is more reliable under load: a request and its acknowledge arriving together are no longer lost
+- fix s1apItemsAllowIp stopping the packet engine when set to one address, and /0 matching only the network address
+- verified by replaying live signalling of two operator networks (about 3 hours each); 4G S1 handover verified; a T12S-MEC takes about 1 million S1AP packets a second without loss; 100,000 sessions set up and released over and over under uplink traffic, the table and its indexes reclaimed exactly
+
+
+## GRISM-6.6.261029.1
+\- function added \-
+- an automation interface: API tokens, configuration validation and path tracing, a submit that rolls back unless confirmed in time, a device capability query, an event feed and webhooks (Settings → API tokens / Webhooks)
+- a replay input takes a speed ratio, playing a capture at a multiple of its own pace
+
+\- MEC \-
+- the table follows the UE's internet bearer / PDU session: on 4G it is learned when the internet bearer is not E-RAB 5, and IMS and voice bearers are no longer taken for it; on 5G an IMS session (by 5QI) is passed over
+- 5G PDU session modify (PDUSessionResourceModify and ModifyIndication) is parsed: when a session's tunnel moves, breakout follows the new one
+- a UE with several PDU sessions keeps its internet session's tunnels and cell across a handover (Xn / N2)
+- E-RAB release and PDU session release are parsed: when the internet bearer / session is released its entry goes with it, and one set up again uses its new tunnel
+- SCTP fragments are reassembled per association, stream and sequence number: base stations sending fragmented messages with the same sequence number at once no longer disturb each other
+- handover is more reliable under load: a request and its acknowledge arriving together are no longer lost
+- fix s1apItemsAllowIp stopping the packet engine when set to one address, and /0 matching only the network address
+- verified by replaying live signalling of two operator networks (about 3 hours each); 4G S1 handover verified; a T12S-MEC takes about 1 million S1AP packets a second without loss; 100,000 sessions set up and released over and over under uplink traffic, the table and its indexes reclaimed exactly
+
+
 ## GRISM-7.6.261016.1
 \- function added \-
 - Allow Local Login Hosts: while TACACS+ / RADIUS is on, sign-ins from the listed addresses use the local accounts (Settings → Login authentication)

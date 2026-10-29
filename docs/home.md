@@ -1,3 +1,35 @@
+## GRISM-7.6.261028.1
+\- 新增功能 \-
+- 自動化介面:API 權杖、設定的驗證與路徑追蹤、逾時未確認即自動還原的設定提交、裝置能力查詢、事件紀錄與 webhook(設定 → API 權杖 / Webhook)
+- 回放輸入可設定速度倍率,以擷取檔原本節奏的倍數播放
+
+\- MEC \-
+- 對應表跟隨 UE 上網用的 bearer / PDU session:4G 上網 bearer 不是 E-RAB 5 時也能學到,IMS 與語音 bearer 不再被當成上網;5G 依 5QI 略過 IMS session
+- 解析 5G PDU session 修改(PDUSessionResourceModify 與 ModifyIndication):session 的隧道搬移後,分流跟著走新的隧道
+- 有多個 PDU session 的 UE 換手(Xn / N2)後,保留上網 session 的隧道與 cell
+- 解析 E-RAB 釋放與 PDU session 釋放:上網的 bearer / session 釋放時對應項目一併移除,重新建立時改用新的隧道
+- SCTP 分割訊息的重組以連線、stream 與序號區分:不同基地台同時送出相同序號的分割訊息時不再互相干擾
+- 改善換手在高負載下的穩定性:換手請求與確認同時到達時不再遺失
+- 修正 s1apItemsAllowIp 設為單一位址時封包引擎停止,以及設為 /0 時只符合網路位址的問題
+- 以兩個營運網路的實際訊令(各約 3 小時)回放驗證;4G S1 換手驗證通過;T12S-MEC 在每秒約 100 萬個 S1AP 封包下不掉包;10 萬個 session 在持續上行流量下反覆建立與釋放,對應表與索引皆正確回收
+
+
+## GRISM-6.6.261029.1
+\- 新增功能 \-
+- 自動化介面:API 權杖、設定的驗證與路徑追蹤、逾時未確認即自動還原的設定提交、裝置能力查詢、事件紀錄與 webhook(設定 → API 權杖 / Webhook)
+- 回放輸入可設定速度倍率,以擷取檔原本節奏的倍數播放
+
+\- MEC \-
+- 對應表跟隨 UE 上網用的 bearer / PDU session:4G 上網 bearer 不是 E-RAB 5 時也能學到,IMS 與語音 bearer 不再被當成上網;5G 依 5QI 略過 IMS session
+- 解析 5G PDU session 修改(PDUSessionResourceModify 與 ModifyIndication):session 的隧道搬移後,分流跟著走新的隧道
+- 有多個 PDU session 的 UE 換手(Xn / N2)後,保留上網 session 的隧道與 cell
+- 解析 E-RAB 釋放與 PDU session 釋放:上網的 bearer / session 釋放時對應項目一併移除,重新建立時改用新的隧道
+- SCTP 分割訊息的重組以連線、stream 與序號區分:不同基地台同時送出相同序號的分割訊息時不再互相干擾
+- 改善換手在高負載下的穩定性:換手請求與確認同時到達時不再遺失
+- 修正 s1apItemsAllowIp 設為單一位址時封包引擎停止,以及設為 /0 時只符合網路位址的問題
+- 以兩個營運網路的實際訊令(各約 3 小時)回放驗證;4G S1 換手驗證通過;T12S-MEC 在每秒約 100 萬個 S1AP 封包下不掉包;10 萬個 session 在持續上行流量下反覆建立與釋放,對應表與索引皆正確回收
+
+
 ## GRISM-7.6.261016.1
 \- 新增功能 \-
 - 登入驗證可設定「允許本機登入的主機」:TACACS+ / RADIUS 開啟時,列出的位址改用本機帳號登入(設定 → 登入驗證)
