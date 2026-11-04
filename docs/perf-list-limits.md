@@ -57,6 +57,13 @@
 
 <iframe src="tools/list-limits-66.html" data-autoheight style="width:100%;height:900px;border:1px solid #e5e8eb;border-radius:6px" title="清單同時放的上限"></iframe>
 
+## 即時載入的規則(6.6.261104 / 7.6.261104 起預設開啟)
+
+- **預設**:新出廠設定 `tryRunXmltoGdp` 為開;設定檔裡**已經明寫 `false` 的機器升級後維持 `false`**(升級會把原設定帶過去),只有從來沒有這個 key 的機器會變成開。Settings 的 liveUpdate 開關隨時可改。
+- **哪些檔案走即時載入**:`runN.xml` 裡只有 filter,每個 filter 同一種欄位(`ip.addr`/`ip.src`/`ip.dst` 全部單一位址或全部 CIDR、`ipv6.*`、`dns.qry.name`、`ssl.server_name`、`http.request.url` 及其 `_public_suffix`),`==`、`<or>` 或平列。以下會**安靜地退回完整 reload**(log 有 `runN.xml is parsed whole: <原因>`):同一個 filter 混用單一位址與 CIDR、含 `*` 或 `-` 的範圍、`<and>` / `<not>`、filter 帶 `maxPackets` 這類 GDP 不認的屬性、檔案裡沒有任何 filter(清空檔案也是完整 reload,一樣會清掉,只是不是即時)。
+- **從檔案拿掉的 filter 會即時消失**(6.6.261104 / 7.6.261104 起):下一次上傳該 `runN.xml` 時,不在檔案裡的 filter 就從引擎移除,log 記 `filter N: no longer in runN.xml, its list goes`。chain 若仍引用它,視同空清單:`F` 不中、`!F` 全中。之前的版本要到完整 reload 或開機才消失。
+- **失敗會發成告警**:`list_load` 規則(Settings > Alerts),以檔名為主題,附原因;同一檔之後載入成功就自動清除。也走 SNMP trap、事件與 webhook。三種失敗見下一節。
+
 ## 失敗時會發生什麼
 
 1. **bootmem 放不下。** log 出現 `failed to alloc from bootmem named ...` 和 `GDP reload failed: staying on hash table N`,新清單沒有生效，**舊清單繼續生效**,系統正常。

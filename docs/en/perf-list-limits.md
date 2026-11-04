@@ -57,6 +57,13 @@ The binding constraint is the bootmem rule above: every table in use, added up, 
 
 <iframe src="tools/list-limits-66.html?lang=en" data-autoheight style="width:100%;height:900px;border:1px solid #e5e8eb;border-radius:6px" title="Limits with several lists loaded"></iframe>
 
+## The live-load rules (on by default from 6.6.261104 / 7.6.261104)
+
+- **Default**: new factory settings have `tryRunXmltoGdp` on; a box whose file **already says `false` keeps `false` after an update** (the update carries the old settings across), only a box that never had the key changes. The liveUpdate switch under Settings changes it either way.
+- **Which files load live**: a `runN.xml` holding filters only, each filter one field type (`ip.addr`/`ip.src`/`ip.dst` all single addresses or all CIDR, `ipv6.*`, `dns.qry.name`, `ssl.server_name`, `http.request.url` and their `_public_suffix` forms), `==`, under `<or>` or plain. These **quietly fall back to a full reload** (the log says `runN.xml is parsed whole: <reason>`): single addresses and CIDR mixed in one filter, a range with `*` or `-`, `<and>` / `<not>`, a filter attribute a GDP file does not carry such as `maxPackets`, and a file with no filter at all (emptying the file is a full reload too -- it does clear the lists, just not live).
+- **A filter taken out of the file disappears live** (from 6.6.261104 / 7.6.261104): on the next upload of that `runN.xml`, every filter no longer in it is removed from the engine, logged as `filter N: no longer in runN.xml, its list goes`. A chain that still names it sees an empty list: `F` matches nothing, `!F` everything. Earlier firmware kept it until a full reload or a boot.
+- **A failure raises an alert**: the `list_load` rule (Settings > Alerts), one per file with the reason, cleared by the next successful load of that file; it also goes out as an SNMP trap, an event and a webhook. The three kinds of failure are in the next section.
+
 ## What happens when it fails
 
 1. **No room in bootmem.** The log says `failed to alloc from bootmem named ...` and `GDP reload failed: staying on hash table N`; the new list is not in effect, **the old one stays**, the box is fine.
