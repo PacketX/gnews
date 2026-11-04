@@ -49,7 +49,13 @@ What an entry costs:
 
 - **The bootmem rule: the new list's table plus every table in use must fit.** A live load builds "the lists in use plus the new one" in the other index before switching, so while a big list is being updated its old and new tables exist at once. With the flow tables at 10000/50000 this G8S updates a list whose table is about 450 MB (dns 1,300,000) and cannot place the second copy of a 485 MB one (dns 1,400,000); the CIDR trees sit in the same range. Every table needs one contiguous block.
 - **The Linux memory rule: two copies of the XML in RAM.** `/data` is a tmpfs, so the upload and the old file in running-config both take RAM, plus the GDP file while converting. A hash table of single addresses is small, so that kind runs into this rule: 128 MB of XML (2,100,000 entries) pass; at 134 MB pywww hangs during the second upload and the web API stops answering for minutes (it recovered by itself), and sshd is gone for good -- the engine and the lists are fine, but ssh needs a reboot from the web page.
-- With several kinds loaded together both rules apply at once; the combinations were not re-measured one by one this time, as the old page did.
+- With several kinds loaded together both rules apply at once; the tool below works it out.
+
+## Several lists at once
+
+The binding constraint is the bootmem rule above: every table in use, added up, plus a second copy of the one being updated, has to fit at once; a full reload or a boot instead needs the sum of one copy of each. dns, CIDR and IPv6 each take a slab; the single-address table is tiny and barely touches bootmem, so that kind is bounded instead by the two copies of its XML in the `/data` tmpfs. The tool works these rules from the per-entry costs measured on this page: move the four counts, each row shows the most that kind can hold with the others fixed, the table below shows the headroom left for every operation, and the bar shows the four tables plus the hatched live-update copy of the largest against the bootmem budget. Tree sizes depend on how the prefixes are spread -- whole networks written as CIDR, or addresses clustered in a few networks, cost far less than the same count of random /24s or /128s, so change the per-entry figures in "Model parameters" for your own lists. This is a model fitted to the four single-list limits; the combinations were not each re-measured as the old page did.
+
+<iframe src="tools/list-limits-66.html?lang=en" data-autoheight style="width:100%;height:900px;border:1px solid #e5e8eb;border-radius:6px" title="Limits with several lists loaded"></iframe>
 
 ## What happens when it fails
 

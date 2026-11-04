@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>List Limits 6.6</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #2c3e50; --muted: #6a737d; --line: #e5e8eb; --card: #f8f9fa;
+    --accent: #42b983; --ok: #2e9e6a; --warn: #c98a00; --bad: #d64545;
+    --dns: #3a8ee6; --ip: #42b983; --cidr: #d98a2b; --v6: #7b61c9; --free: #dfe3e8;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--fg);
+    font: 14px/1.5 -apple-system, "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; }
+  .wrap { padding: 16px; max-width: 880px; }
+  h3 { margin: 0 0 4px; font-size: 16px; }
+  .sub { color: var(--muted); font-size: 12.5px; margin-bottom: 14px; }
+  .row { display: grid; grid-template-columns: 150px 1fr 120px; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .row label { font-weight: 600; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+  .row label span { display: block; font-family: inherit; font-weight: 400; font-size: 11px; color: var(--muted); }
+  .row input[type=range] { width: 100%; }
+  .row input[type=number] { width: 100%; padding: 4px 6px; border: 1px solid var(--line); border-radius: 4px; font: inherit; text-align: right; color: var(--fg); background: var(--bg); }
+  .max { grid-column: 2 / 4; font-size: 12.5px; color: var(--muted); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: -4px; }
+  .max b { color: var(--fg); font-variant-numeric: tabular-nums; }
+  button { font: inherit; font-size: 12px; padding: 2px 8px; border: 1px solid var(--accent); color: var(--accent); background: transparent; border-radius: 4px; cursor: pointer; }
+  button:hover { background: var(--accent); color: #fff; }
+  .bar { display: flex; height: 20px; border-radius: 4px; overflow: hidden; margin: 16px 0 4px; background: var(--free); outline: 1px solid var(--line); }
+  .bar div { height: 100%; transition: width .15s; }
+  .bar .ghost { background: repeating-linear-gradient(45deg, rgba(214,69,69,.0), rgba(214,69,69,.0) 4px, rgba(214,69,69,.35) 4px, rgba(214,69,69,.35) 8px); }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 13px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .chip { display: inline-block; padding: 0 8px; border-radius: 10px; font-size: 12px; font-weight: 600; color: #fff; white-space: nowrap; }
+  .chip.ok { background: var(--ok); } .chip.warn { background: var(--warn); } .chip.bad { background: var(--bad); } .chip.na { background: var(--free); color: var(--muted); }
+  .verdict { margin-top: 14px; padding: 10px 12px; border-radius: 6px; background: var(--card); border-left: 4px solid var(--accent); }
+  .verdict.bad { border-left-color: var(--bad); } .verdict.warn { border-left-color: var(--warn); }
+  details { margin-top: 14px; font-size: 12.5px; color: var(--muted); }
+  details summary { cursor: pointer; }
+  .adv { display: grid; grid-template-columns: 1fr 110px; gap: 6px 10px; align-items: center; margin-top: 8px; max-width: 520px; }
+  .adv input { padding: 3px 6px; border: 1px solid var(--line); border-radius: 4px; font: inherit; text-align: right; color: var(--fg); background: var(--bg); }
+  @media (max-width: 560px) {
+    .row { grid-template-columns: 1fr 110px; }
+    .row label { grid-column: 1 / 3; }
+    .max { grid-column: 1 / 3; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h3 id="t-title"></h3>
+  <div class="sub" id="t-sub"></div>
+
+  <div class="row">
+    <label for="n-dns">dns.qry.name<span id="l-dns"></span></label>
+    <input type="range" id="r-dns" min="0" max="1500000" step="10000">
+    <input type="number" id="n-dns" min="0" max="1500000" step="10000">
+    <div class="max"><span id="m-dns"></span><button data-max="dns"></button></div>
+  </div>
+  <div class="row">
+    <label for="n-cidr">ip.addr CIDR<span id="l-cidr"></span></label>
+    <input type="range" id="r-cidr" min="0" max="2000000" step="10000">
+    <input type="number" id="n-cidr" min="0" max="2000000" step="10000">
+    <div class="max"><span id="m-cidr"></span><button data-max="cidr"></button></div>
+  </div>
+  <div class="row">
+    <label for="n-ipv6">ipv6.addr<span id="l-ipv6"></span></label>
+    <input type="range" id="r-ipv6" min="0" max="120000" step="1000">
+    <input type="number" id="n-ipv6" min="0" max="120000" step="1000">
+    <div class="max"><span id="m-ipv6"></span><button data-max="ipv6"></button></div>
+  </div>
+  <div class="row">
+    <label for="n-ip">ip.addr<span id="l-ip"></span></label>
+    <input type="range" id="r-ip" min="0" max="2500000" step="10000">
+    <input type="number" id="n-ip" min="0" max="2500000" step="10000">
+    <div class="max"><span id="m-ip"></span><button data-max="ip"></button></div>
+  </div>
+
+  <div class="bar" id="bar">
+    <div id="b-dns" style="background:var(--dns)"></div>
+    <div id="b-cidr" style="background:var(--cidr)"></div>
+    <div id="b-ipv6" style="background:var(--v6)"></div>
+    <div id="b-ip" style="background:var(--ip)"></div>
+    <div id="b-ghost" class="ghost"></div>
+  </div>
+  <div class="legend" id="legend"></div>
+
+  <table>
+    <thead><tr><th id="h-op"></th><th id="h-need"></th><th class="num" id="h-slack"></th><th id="h-res"></th></tr></thead>
+    <tbody id="ops"></tbody>
+  </table>
+  <div class="verdict" id="verdict"></div>
+
+  <details>
+    <summary id="t-adv"></summary>
+    <div class="adv">
+      <span id="a-boot"></span><input type="number" id="boot" value="880" step="10">
+      <span id="a-ram"></span><input type="number" id="ram" value="125" step="2">
+      <span id="a-v6b"></span><input type="number" id="v6b" value="4900" step="50">
+      <span id="a-cidrb"></span><input type="number" id="cidrb" value="260" step="2">
+      <span id="a-dnsb"></span><input type="number" id="dnsb" value="346" step="2">
+      <span id="a-dnslen"></span><input type="number" id="dnslen" value="24" step="1" min="1" max="253">
+      <span id="a-warn"></span><input type="number" id="warnm" value="30" step="5" min="0">
+    </div>
+    <p id="t-model"></p>
+  </details>
+</div>
+<script>
+(function () {
+  "use strict";
+  var EN = /[?&]lang=en\b/.test(location.search);
+  var T = EN ? {
+    title: "How many entries the lists can hold together (6.6 / 7.6)",
+    sub: "G8S, firmware 6.6.261103, flow tables IPv4 160,000 (flowCacheBaseSize 10000) / IPv6 50,000. Every qualifying list now lives in bootmem, and a live update holds the lists in use plus the new one at once. A model from the single-list limits on this page, not a guarantee; tree sizes depend on how the prefixes are spread.",
+    max: "most with the others as set:", setmax: "use", adv: "Model parameters",
+    boot: "Bootmem for lists (MiB)", ram: "Single-address XML ceiling (MiB)",
+    v6b: "ipv6.addr tree bytes/entry", cidrb: "ip CIDR tree bytes/entry", dnsb: "dns table bytes/entry",
+    dnslen: "Average domain-name length (chars)", warn: "Below this headroom it is borderline (MiB)",
+    l_dns: "hash table, ~346 B/entry here", l_cidr: "radix tree, random /24 here", l_ipv6: "radix tree, random /128 here", l_ip: "single addresses, hash table (tiny)",
+    op: "Operation", need: "What has to fit", slack: "Headroom", res: "Result",
+    ok: "OK", warn2: "borderline", bad: "fails", na: "-",
+    o_dns: "Update the dns.qry.name list live", o_cidr: "Update the ip.addr CIDR list live",
+    o_v6: "Update the ipv6.addr list live", o_ip: "Update the ip.addr single-address list live", o_re: "Full reload / reboot (builds every table once)",
+    n_live: "every list's table in use + a second copy of this one",
+    n_ram: "two copies of the list's XML in the /data tmpfs",
+    n_re: "every list's table, one copy each",
+    f_live: "the log says GDP reload failed: staying on hash table N; the old list stays in force",
+    f_ram: "the upload cannot be written; nothing restarts pywww on MIPS; use scp, not the web page",
+    f_re: "that filter is left empty (run1.xml.gdp load fail); the others are unaffected",
+    leg_dns: "dns table", leg_cidr: "CIDR tree", leg_ipv6: "IPv6 tree", leg_ip: "single-addr table", leg_ghost: "+ the live-update copy of the largest", leg_free: "free",
+    v_ok: "Every list can be updated live and a full reload keeps all of them.",
+    v_warn: "Fits, but with little headroom: a step more and the next live update of the largest list will not fit.",
+    v_bad: "Does not fit: ",
+    model: "Model. Bootmem for lists B (about 880 MiB at flow 10000/50000: dns 1,300,000 updates with a ~430 MiB table, 1,400,000 does not because the ~460 MiB second copy will not fit). Per entry in bootmem: dns ~346 B, ip single ~11 B (8 x 4/3, so single addresses barely touch bootmem), ip CIDR ~260 B for random /24 and ipv6 ~4.9 KB for random /128 -- both trees cost one 56-byte node per distinct prefix bit, so whole networks written as CIDR and clustered addresses cost far less (change the per-entry figures for your own lists). A live update of one kind needs sum(all tables) + that kind's table <= B; a full reload or reboot needs sum(all tables) <= B. Single addresses are bounded instead by the /data tmpfs: about 125 MiB of list XML (2,100,000 single ip.addr) uploads, more wedges pywww. Fitted to the four single-list limits measured here; the combinations were not each re-measured."
+  } : {
+    title: "清單同時放上去，各能放幾筆(6.6 / 7.6)",
+    sub: "G8S,韌體 6.6.261103,flow table IPv4 160,000(flowCacheBaseSize 10000)/ IPv6 50,000。新韌體裡每種符合條件的清單都放在 bootmem,即時更新時「使用中的所有表 + 新表」會同時存在。依本頁的單一清單上限擬合的模型，不是保證值;樹的大小取決於網段怎麼分佈。",
+    max: "其他維持目前設定時最多:", setmax: "套用", adv: "模型參數",
+    boot: "清單可用的 bootmem(MiB)", ram: "單一位址 XML 上限(MiB)",
+    v6b: "ipv6.addr 樹每筆 bytes", cidrb: "ip CIDR 樹每筆 bytes", dnsb: "dns 表每筆 bytes",
+    dnslen: "網域名稱平均長度(字元)", warn: "餘裕低於此值視為臨界(MiB)",
+    l_dns: "hash table,此處每筆約 346 B", l_cidr: "radix 樹,此處用隨機 /24", l_ipv6: "radix 樹,此處用隨機 /128", l_ip: "單一位址,hash table(很小)",
+    op: "動作", need: "需要放得下", slack: "餘裕", res: "結果",
+    ok: "可以", warn2: "臨界", bad: "失敗", na: "-",
+    o_dns: "即時更新 dns.qry.name 清單", o_cidr: "即時更新 ip.addr CIDR 清單",
+    o_v6: "即時更新 ipv6.addr 清單", o_ip: "即時更新 ip.addr 單一位址清單", o_re: "完整 reload / 重開機(每張表各建一次)",
+    n_live: "使用中的每張表 + 這一種的第二份",
+    n_ram: "這份清單的 XML 在 /data tmpfs 裡要放得下兩份",
+    n_re: "每張表各一份",
+    f_live: "log 出現 GDP reload failed: staying on hash table N,舊清單繼續生效",
+    f_ram: "新檔寫不進去;MIPS 上沒有程式會重啟 pywww,大檔請用 scp 不要用網頁",
+    f_re: "那個 filter 會是空的(run1.xml.gdp load fail),其他不受影響",
+    leg_dns: "dns 表", leg_cidr: "CIDR 樹", leg_ipv6: "IPv6 樹", leg_ip: "單一位址表", leg_ghost: "+ 最大那份即時更新的第二份", leg_free: "剩餘",
+    v_ok: "每種清單都能即時更新，完整 reload 也不會掉任何一份。",
+    v_warn: "放得下，但餘裕很小：再多一步，最大那份清單的下一次即時更新就放不下了。",
+    v_bad: "放不下：",
+    model: "模型。清單可用的 bootmem B(flow 10000/50000 下約 880 MiB:dns 1,300,000 能更新,表約 430 MiB;1,400,000 不行,因為約 460 MiB 的第二份放不下)。bootmem 每筆:dns 約 346 B,ip 單一位址約 11 B(8 x 4/3,所以單一位址幾乎不佔 bootmem),ip CIDR 隨機 /24 約 260 B、ipv6 隨機 /128 約 4.9 KB——兩種樹都是每個相異的 prefix bit 一個 56-byte 節點,所以整段網段寫成 CIDR、位址集中在少數網段都便宜得多(自己的清單可改每筆 bytes)。某一種即時更新需要 所有表總和 + 這一種的表 ≤ B;完整 reload / 重開機需要 所有表總和 ≤ B。單一位址改由 /data tmpfs 限制:約 125 MiB 的清單 XML(2,100,000 筆單一 ip.addr)能上傳,再多 pywww 會卡住。以本頁四個單一清單上限擬合,各組合這次沒有逐一重測。"
+  };
+  document.documentElement.lang = EN ? "en" : "zh-TW";
+
+  var MiB = 1048576;
+  var CAP = { dns: 1500000, cidr: 2000000, ipv6: 120000, ip: 2500000 };
+  var n = { dns: 500000, cidr: 300000, ipv6: 20000, ip: 500000 };
+  var $ = function (id) { return document.getElementById(id); };
+  function fmt(x) { return Math.round(x).toLocaleString("en-US"); }
+  function par() {
+    return {
+      B: +$("boot").value || 880, RAM: +$("ram").value || 125,
+      v6b: +$("v6b").value || 4900, cidrb: +$("cidrb").value || 260, dnsb: +$("dnsb").value || 346,
+      L: Math.max(1, +$("dnslen").value || 24), W: Math.max(0, +$("warnm").value)
+    };
+  }
+  // bootmem table/tree size of each kind, in MiB
+  function tbl(v, p) {
+    return {
+      dns: v.dns * p.dnsb / MiB,
+      cidr: v.cidr * p.cidrb / MiB,
+      ipv6: v.ipv6 * p.v6b / MiB,
+      ip: v.ip * 10.7 / MiB
+    };
+  }
+  // XML in the /data tmpfs, MiB (one copy)
+  function xml(t, v, p) {
+    return t === "ip" ? v.ip * 61 / MiB : t === "dns" ? v.dns * (52 + p.L) / MiB
+      : t === "cidr" ? v.cidr * 66 / MiB : v.ipv6 * 88 / MiB;
+  }
+  // every operation the lists have to survive, headroom in MiB
+  function ops(v, p) {
+    var tb = tbl(v, p), sum = tb.dns + tb.cidr + tb.ipv6 + tb.ip, out = [];
+    [["dns", T.o_dns], ["cidr", T.o_cidr], ["ipv6", T.o_v6]].forEach(function (kk) {
+      var k = kk[0]; if (v[k]) out.push({ k: k, op: kk[1], need: T.n_live, fail: T.f_live, s: p.B - (sum + tb[k]) });
+    });
+    // single addresses: bootmem is trivial, the /data tmpfs caps it (two XML copies)
+    if (v.ip) out.push({ k: "ip", op: T.o_ip, need: T.n_ram, fail: T.f_ram, s: p.RAM - xml("ip", v, p) });
+    if (sum > 0) out.push({ k: "re", op: T.o_re, need: T.n_re, fail: T.f_re, s: p.B - sum });
+    return { list: out, tb: tb, sum: sum };
+  }
+  function fits(v, p) { return ops(v, p).list.every(function (o) { return o.s >= 0; }); }
+  function maxOf(t, p) {
+    var lo = 0, hi = CAP[t], v = Object.assign({}, n);
+    v[t] = 0; if (!fits(v, p)) return 0;
+    while (hi - lo > (t === "ipv6" ? 500 : 5000)) { var mid = Math.floor((lo + hi) / 2); v[t] = mid; if (fits(v, p)) lo = mid; else hi = mid; }
+    return lo;
+  }
+  function chip(s, p) {
+    if (s < 0) return '<span class="chip bad">' + T.bad + "</span>";
+    if (s < p.W) return '<span class="chip warn">' + T.warn2 + "</span>";
+    return '<span class="chip ok">' + T.ok + "</span>";
+  }
+  function render() {
+    var p = par(), r = ops(n, p);
+    ["dns", "cidr", "ipv6", "ip"].forEach(function (t) {
+      $("r-" + t).value = n[t]; if (document.activeElement !== $("n-" + t)) $("n-" + t).value = n[t];
+      var m = maxOf(t, p); $("m-" + t).innerHTML = T.max + " <b>" + fmt(m) + "</b>";
+      var b = document.querySelector('[data-max="' + t + '"]'); b.textContent = T.setmax; b.dataset.v = m;
+    });
+    // bar: the four tables, then a hatched ghost for the biggest table's live-update copy, against B
+    var big = Math.max(r.tb.dns, r.tb.cidr, r.tb.ipv6, 0);
+    ["dns", "cidr", "ipv6", "ip"].forEach(function (t) { $("b-" + t).style.width = (100 * r.tb[t] / p.B) + "%"; });
+    $("b-ghost").style.width = (100 * Math.min(big, Math.max(0, p.B - r.sum)) / p.B) + "%";
+    $("legend").innerHTML =
+      '<span><i style="background:var(--dns)"></i>' + T.leg_dns + " " + fmt(r.tb.dns) + "</span>" +
+      '<span><i style="background:var(--cidr)"></i>' + T.leg_cidr + " " + fmt(r.tb.cidr) + "</span>" +
+      '<span><i style="background:var(--v6)"></i>' + T.leg_ipv6 + " " + fmt(r.tb.ipv6) + "</span>" +
+      '<span><i style="background:var(--ip)"></i>' + T.leg_ip + " " + fmt(r.tb.ip) + "</span>" +
+      '<span><i class="ghost" style="display:inline-block"></i>' + T.leg_ghost + " " + fmt(big) + "</span>" +
+      '<span><i style="background:var(--free)"></i>' + T.leg_free + " " + fmt(Math.max(0, p.B - r.sum - big)) + " / " + fmt(p.B) + " MiB</span>";
+    $("ops").innerHTML = r.list.length ? r.list.map(function (o) {
+      return "<tr><td>" + o.op + (o.s < 0 ? '<br><span style="color:var(--bad);font-size:12px">' + o.fail + "</span>" : "") +
+        "</td><td>" + o.need + '</td><td class="num">' + (o.s >= 0 ? "+" : "") + o.s.toFixed(1) + " MiB</td><td>" + chip(o.s, p) + "</td></tr>";
+    }).join("") : '<tr><td colspan="4"><span class="chip na">' + T.na + "</span></td></tr>";
+    var worst = r.list.reduce(function (a, o) { return Math.min(a, o.s); }, Infinity), v = $("verdict");
+    if (worst < 0) {
+      v.className = "verdict bad";
+      v.textContent = T.v_bad + r.list.filter(function (o) { return o.s < 0; }).map(function (o) { return o.op; }).join(EN ? "; " : ";");
+    } else if (worst < p.W) { v.className = "verdict warn"; v.textContent = T.v_warn; }
+    else { v.className = "verdict"; v.textContent = T.v_ok; }
+  }
+  function set(t, val) { n[t] = Math.max(0, Math.min(CAP[t], Math.round(+val || 0))); render(); }
+
+  ["title", "sub", "adv", "model"].forEach(function (k) { $("t-" + k).textContent = T[k]; });
+  ["dns", "cidr", "ipv6", "ip"].forEach(function (t) { $("l-" + t).textContent = T["l_" + t]; });
+  $("a-boot").textContent = T.boot; $("a-ram").textContent = T.ram; $("a-v6b").textContent = T.v6b;
+  $("a-cidrb").textContent = T.cidrb; $("a-dnsb").textContent = T.dnsb; $("a-dnslen").textContent = T.dnslen; $("a-warn").textContent = T.warn;
+  $("h-op").textContent = T.op; $("h-need").textContent = T.need; $("h-slack").textContent = T.slack; $("h-res").textContent = T.res;
+  ["dns", "cidr", "ipv6", "ip"].forEach(function (t) {
+    $("r-" + t).addEventListener("input", function (e) { set(t, e.target.value); });
+    $("n-" + t).addEventListener("input", function (e) { set(t, e.target.value); });
+    $("n-" + t).addEventListener("change", function () { render(); });
+    document.querySelector('[data-max="' + t + '"]').addEventListener("click", function (e) { set(t, e.target.dataset.v); });
+  });
+  ["boot", "ram", "v6b", "cidrb", "dnsb", "dnslen", "warnm"].forEach(function (id) { $(id).addEventListener("input", render); });
+  render();
+  function post() { try { parent.postMessage({ listLimitsHeight: document.documentElement.scrollHeight }, "*"); } catch (e) {} }
+  new ResizeObserver(post).observe(document.body); post();
+})();
+</script>
+</body>
+</html>
