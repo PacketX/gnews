@@ -2,6 +2,22 @@
 
 The MIPS models: G8S, G8, T12S, T20, F2T12, F4T4 and their MEC variants. The DPDK models' notes are [here](/en/release-dpdk.md).
 
+## GRISM-6.6.261104.3
+\- function added \-
+- live loading of big filter lists is on by default (Settings → Packet handling → Live filter updates), and IPv4 CIDR and IPv6 lists load live too instead of through a full reload; a filter taken out of a list file is removed with the file's next load
+- a new alert, Filter list not applied: raised when a list fails to load, cleared by its next successful load (Settings → Alerts)
+- the filters and chains pages list the filters the device runs that this configuration does not define (live-loaded lists and the like), and a chain can reference them
+
+\- bug fixed \-
+- improve the stability and memory use of loading and updating big filter lists; one that does not fit keeps the list in use, and the system log says so
+- fix the GRISM ports' SNMP ifIndex shifting after a management interface re-registers
+- fix the SNMP sub-agent exiting on a query that takes too long
+- fix packet processing stopping when a setting is changed while a replay or the traffic generator is running
+
+\- item changed \-
+- system components updated: OpenSSL 3.5.9, nginx 1.30.6, Python 3.11.13, OpenSSH 10.6p1, installed by every firmware update (before, only by a first install); the update file is bigger and the update takes longer
+
+
 ## GRISM-6.6.261029.1
 \- function added \-
 - an automation interface: API tokens, configuration validation and path tracing, a submit that rolls back unless confirmed in time, a device capability query, an event feed and webhooks (Settings → API tokens / Webhooks)
