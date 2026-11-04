@@ -3,6 +3,8 @@
   - [Grism Studio](https://packetx.github.io/grism-studio/) 
   - [Studio 操作手冊](studio-manual.md)
   - [版本資訊](/)
+    - [DPDK 系列(7.x)](release-dpdk.md)
+    - [MIPS 系列(6.x)](release-mips.md)
   - [文件](docs.md)
 - 技術筆記
   - [JA4 指紋:計算、驗證與踩過的坑](tech-ja4.md)
