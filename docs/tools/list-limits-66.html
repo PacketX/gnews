@@ -97,7 +97,7 @@
   <details>
     <summary id="t-adv"></summary>
     <div class="adv">
-      <span id="a-boot"></span><input type="number" id="boot" value="880" step="10">
+      <span id="a-boot"></span><input type="number" id="boot" value="890" step="10">
       <span id="a-ram"></span><input type="number" id="ram" value="125" step="2">
       <span id="a-v6b"></span><input type="number" id="v6b" value="4900" step="50">
       <span id="a-cidrb"></span><input type="number" id="cidrb" value="260" step="2">
@@ -124,17 +124,18 @@
     ok: "OK", warn2: "borderline", bad: "fails", na: "-",
     o_dns: "Update the dns.qry.name list live", o_cidr: "Update the ip.addr CIDR list live",
     o_v6: "Update the ipv6.addr list live", o_ip: "Update the ip.addr single-address list live", o_re: "Full reload / reboot (builds every table once)",
-    n_live: "every list's table in use + a second copy of this one",
+    n_hash: "2H + T: every hash table counted twice, plus the trees",
+    n_tree: "2H + T + this tree again (the hash tables are still doubled)",
     n_ram: "two copies of the list's XML in the /data tmpfs",
-    n_re: "every list's table, one copy each",
+    n_re: "H + T: every table once",
     f_live: "the log says GDP reload failed: staying on hash table N; the old list stays in force",
     f_ram: "the upload cannot be written; nothing restarts pywww on MIPS; use scp, not the web page",
     f_re: "that filter is left empty (run1.xml.gdp load fail); the others are unaffected",
-    leg_dns: "dns table", leg_cidr: "CIDR tree", leg_ipv6: "IPv6 tree", leg_ip: "single-addr table", leg_ghost: "+ the live-update copy of the largest", leg_free: "free",
+    leg_dns: "dns table", leg_cidr: "CIDR tree", leg_ipv6: "IPv6 tree", leg_ip: "single-addr table", leg_ghost: "+ live update: hash tables again + largest tree", leg_free: "free",
     v_ok: "Every list can be updated live and a full reload keeps all of them.",
     v_warn: "Fits, but with little headroom: a step more and the next live update of the largest list will not fit.",
     v_bad: "Does not fit: ",
-    model: "Model. Bootmem for lists B (about 880 MiB at flow 10000/50000: dns 1,300,000 updates with a ~430 MiB table, 1,400,000 does not because the ~460 MiB second copy will not fit). Per entry in bootmem: dns ~346 B, ip single ~11 B (8 x 4/3, so single addresses barely touch bootmem), ip CIDR ~260 B for random /24 and ipv6 ~4.9 KB for random /128 -- both trees cost one 56-byte node per distinct prefix bit, so whole networks written as CIDR and clustered addresses cost far less (change the per-entry figures for your own lists). A live update of one kind needs sum(all tables) + that kind's table <= B; a full reload or reboot needs sum(all tables) <= B. Single addresses are bounded instead by the /data tmpfs: about 125 MiB of list XML (2,100,000 single ip.addr) uploads, more wedges pywww. Fitted to the four single-list limits measured here; the combinations were not each re-measured."
+    model: "Model, verified on .188. Bootmem for lists B ~= 890 MiB at flow 10000/50000. H = the hash tables (dns at ~346 B/entry, single ip at ~11 B = 8 x 4/3), T = the trees (ip CIDR ~260 B for random /24, ipv6 ~4.9 KB for random /128; both cost one 56-byte node per distinct prefix bit, so whole networks as CIDR and clustered addresses cost far less -- change the per-entry figures for your own lists). The inactive index that a live load builds copies every hash table but shares the trees by reference, rebuilding only the tree it touches, so a hash-list update needs 2H + T <= B, a tree update needs 2H + T + that tree <= B (the hash tables are still doubled -- .188's log showed an ipv6 update copying the whole 277 MB dns table), and a full reload or reboot needs H + T <= B. Single addresses barely touch bootmem and are bounded by the /data tmpfs instead: about 125 MiB of list XML (2,100,000 single ip.addr) uploads, more wedges pywww. B and the per-entry costs are fitted to the four single-list caps and two multi-list combos measured on .188 (2026-11-04); other mixes were not each run."
   } : {
     title: "清單同時放上去，各能放幾筆(6.6 / 7.6)",
     sub: "G8S,韌體 6.6.261103,flow table IPv4 160,000(flowCacheBaseSize 10000)/ IPv6 50,000。新韌體裡每種符合條件的清單都放在 bootmem,即時更新時「使用中的所有表 + 新表」會同時存在。依本頁的單一清單上限擬合的模型，不是保證值;樹的大小取決於網段怎麼分佈。",
@@ -147,17 +148,18 @@
     ok: "可以", warn2: "臨界", bad: "失敗", na: "-",
     o_dns: "即時更新 dns.qry.name 清單", o_cidr: "即時更新 ip.addr CIDR 清單",
     o_v6: "即時更新 ipv6.addr 清單", o_ip: "即時更新 ip.addr 單一位址清單", o_re: "完整 reload / 重開機(每張表各建一次)",
-    n_live: "使用中的每張表 + 這一種的第二份",
+    n_hash: "2H + T:每張 hash 表算兩份,加上樹",
+    n_tree: "2H + T + 這棵樹再一份(hash 表照樣算兩份)",
     n_ram: "這份清單的 XML 在 /data tmpfs 裡要放得下兩份",
-    n_re: "每張表各一份",
+    n_re: "H + T:每張表各一份",
     f_live: "log 出現 GDP reload failed: staying on hash table N,舊清單繼續生效",
     f_ram: "新檔寫不進去;MIPS 上沒有程式會重啟 pywww,大檔請用 scp 不要用網頁",
     f_re: "那個 filter 會是空的(run1.xml.gdp load fail),其他不受影響",
-    leg_dns: "dns 表", leg_cidr: "CIDR 樹", leg_ipv6: "IPv6 樹", leg_ip: "單一位址表", leg_ghost: "+ 最大那份即時更新的第二份", leg_free: "剩餘",
+    leg_dns: "dns 表", leg_cidr: "CIDR 樹", leg_ipv6: "IPv6 樹", leg_ip: "單一位址表", leg_ghost: "+ 即時更新:hash 表再一份 + 最大的樹", leg_free: "剩餘",
     v_ok: "每種清單都能即時更新，完整 reload 也不會掉任何一份。",
     v_warn: "放得下，但餘裕很小：再多一步，最大那份清單的下一次即時更新就放不下了。",
     v_bad: "放不下：",
-    model: "模型。清單可用的 bootmem B(flow 10000/50000 下約 880 MiB:dns 1,300,000 能更新,表約 430 MiB;1,400,000 不行,因為約 460 MiB 的第二份放不下)。bootmem 每筆:dns 約 346 B,ip 單一位址約 11 B(8 x 4/3,所以單一位址幾乎不佔 bootmem),ip CIDR 隨機 /24 約 260 B、ipv6 隨機 /128 約 4.9 KB——兩種樹都是每個相異的 prefix bit 一個 56-byte 節點,所以整段網段寫成 CIDR、位址集中在少數網段都便宜得多(自己的清單可改每筆 bytes)。某一種即時更新需要 所有表總和 + 這一種的表 ≤ B;完整 reload / 重開機需要 所有表總和 ≤ B。單一位址改由 /data tmpfs 限制:約 125 MiB 的清單 XML(2,100,000 筆單一 ip.addr)能上傳,再多 pywww 會卡住。以本頁四個單一清單上限擬合,各組合這次沒有逐一重測。"
+    model: "模型,已在 .188 驗證。清單可用的 bootmem B(flow 10000/50000 下約 890 MiB)。H = 所有 hash 表(dns 每筆約 346 B、單一 ip 約 11 B = 8 x 4/3),T = 所有樹(ip CIDR 隨機 /24 約 260 B、ipv6 隨機 /128 約 4.9 KB;兩種樹都是每個相異 prefix bit 一個 56-byte 節點,所以整段網段寫成 CIDR、位址集中在少數網段都便宜得多,自己的清單可改每筆 bytes)。即時載入建的另一個 index 會把每張 hash 表複製一份,但樹是用 reference 共享、只重建正在更新的那一棵——所以更新 hash 清單需要 2H + T ≤ B,更新樹需要 2H + T + 那棵樹 ≤ B(hash 表照樣被複製一份:.188 的 log 顯示更新 ipv6 時連 277 MB 的 dns 表也複製了一份),完整 reload / 重開機需要 H + T ≤ B。單一位址幾乎不佔 bootmem,改由 /data tmpfs 限制:約 125 MiB 的清單 XML(2,100,000 筆單一 ip.addr)能上傳,再多 pywww 會卡住。B 與每筆成本以 .188 上四個單一清單上限和兩組多清單組合擬合(2026-11-04),其他組合沒有逐一跑。"
   };
   document.documentElement.lang = EN ? "en" : "zh-TW";
 
@@ -168,7 +170,7 @@
   function fmt(x) { return Math.round(x).toLocaleString("en-US"); }
   function par() {
     return {
-      B: +$("boot").value || 880, RAM: +$("ram").value || 125,
+      B: +$("boot").value || 890, RAM: +$("ram").value || 125,
       v6b: +$("v6b").value || 4900, cidrb: +$("cidrb").value || 260, dnsb: +$("dnsb").value || 346,
       L: Math.max(1, +$("dnslen").value || 24), W: Math.max(0, +$("warnm").value)
     };
@@ -187,16 +189,18 @@
     return t === "ip" ? v.ip * 61 / MiB : t === "dns" ? v.dns * (52 + p.L) / MiB
       : t === "cidr" ? v.cidr * 66 / MiB : v.ipv6 * 88 / MiB;
   }
-  // every operation the lists have to survive, headroom in MiB
+  // every operation the lists have to survive, headroom in MiB. The inactive index copies every hash table
+  // (dns, single ip) and shares the trees by reference, rebuilding only the tree being updated -- so a live
+  // update doubles the hash tables (2H) always, and adds a second copy of the one tree it touches.
   function ops(v, p) {
-    var tb = tbl(v, p), sum = tb.dns + tb.cidr + tb.ipv6 + tb.ip, out = [];
-    [["dns", T.o_dns], ["cidr", T.o_cidr], ["ipv6", T.o_v6]].forEach(function (kk) {
-      var k = kk[0]; if (v[k]) out.push({ k: k, op: kk[1], need: T.n_live, fail: T.f_live, s: p.B - (sum + tb[k]) });
-    });
-    // single addresses: bootmem is trivial, the /data tmpfs caps it (two XML copies)
+    var tb = tbl(v, p), H = tb.dns + tb.ip, Tr = tb.cidr + tb.ipv6, sum = H + Tr, out = [];
+    if (v.dns) out.push({ k: "dns", op: T.o_dns, need: T.n_hash, fail: T.f_live, s: p.B - (2 * H + Tr) });
+    if (v.cidr) out.push({ k: "cidr", op: T.o_cidr, need: T.n_tree, fail: T.f_live, s: p.B - (2 * H + Tr + tb.cidr) });
+    if (v.ipv6) out.push({ k: "ipv6", op: T.o_v6, need: T.n_tree, fail: T.f_live, s: p.B - (2 * H + Tr + tb.ipv6) });
+    // single addresses: bootmem is trivial (2H dominated by dns), the /data tmpfs caps it instead
     if (v.ip) out.push({ k: "ip", op: T.o_ip, need: T.n_ram, fail: T.f_ram, s: p.RAM - xml("ip", v, p) });
     if (sum > 0) out.push({ k: "re", op: T.o_re, need: T.n_re, fail: T.f_re, s: p.B - sum });
-    return { list: out, tb: tb, sum: sum };
+    return { list: out, tb: tb, sum: sum, H: H, Tr: Tr };
   }
   function fits(v, p) { return ops(v, p).list.every(function (o) { return o.s >= 0; }); }
   function maxOf(t, p) {
@@ -217,17 +221,18 @@
       var m = maxOf(t, p); $("m-" + t).innerHTML = T.max + " <b>" + fmt(m) + "</b>";
       var b = document.querySelector('[data-max="' + t + '"]'); b.textContent = T.setmax; b.dataset.v = m;
     });
-    // bar: the four tables, then a hatched ghost for the biggest table's live-update copy, against B
-    var big = Math.max(r.tb.dns, r.tb.cidr, r.tb.ipv6, 0);
+    // bar: the four tables, then a hatched ghost for the worst live update's extra = the hash tables copied
+    // again (H) plus a second copy of the largest tree, against B
+    var ghost = r.H + Math.max(r.tb.cidr, r.tb.ipv6, 0);
     ["dns", "cidr", "ipv6", "ip"].forEach(function (t) { $("b-" + t).style.width = (100 * r.tb[t] / p.B) + "%"; });
-    $("b-ghost").style.width = (100 * Math.min(big, Math.max(0, p.B - r.sum)) / p.B) + "%";
+    $("b-ghost").style.width = (100 * Math.min(ghost, Math.max(0, p.B - r.sum)) / p.B) + "%";
     $("legend").innerHTML =
       '<span><i style="background:var(--dns)"></i>' + T.leg_dns + " " + fmt(r.tb.dns) + "</span>" +
       '<span><i style="background:var(--cidr)"></i>' + T.leg_cidr + " " + fmt(r.tb.cidr) + "</span>" +
       '<span><i style="background:var(--v6)"></i>' + T.leg_ipv6 + " " + fmt(r.tb.ipv6) + "</span>" +
       '<span><i style="background:var(--ip)"></i>' + T.leg_ip + " " + fmt(r.tb.ip) + "</span>" +
-      '<span><i class="ghost" style="display:inline-block"></i>' + T.leg_ghost + " " + fmt(big) + "</span>" +
-      '<span><i style="background:var(--free)"></i>' + T.leg_free + " " + fmt(Math.max(0, p.B - r.sum - big)) + " / " + fmt(p.B) + " MiB</span>";
+      '<span><i class="ghost" style="display:inline-block"></i>' + T.leg_ghost + " " + fmt(ghost) + "</span>" +
+      '<span><i style="background:var(--free)"></i>' + T.leg_free + " " + fmt(Math.max(0, p.B - r.sum - ghost)) + " / " + fmt(p.B) + " MiB</span>";
     $("ops").innerHTML = r.list.length ? r.list.map(function (o) {
       return "<tr><td>" + o.op + (o.s < 0 ? '<br><span style="color:var(--bad);font-size:12px">' + o.fail + "</span>" : "") +
         "</td><td>" + o.need + '</td><td class="num">' + (o.s >= 0 ? "+" : "") + o.s.toFixed(1) + " MiB</td><td>" + chip(o.s, p) + "</td></tr>";
