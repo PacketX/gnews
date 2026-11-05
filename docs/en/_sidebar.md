@@ -15,4 +15,6 @@
   - [Letting automations and AI run GRISM](/en/tech-agent.md)
 - Performance tests
   - [How many entries a G8S takes in a big filter list](/en/perf-list-limits.md)
+  - [How many entries a T12S takes in a big filter list](/en/perf-list-limits-t12s.md)
+  - [How many entries a Q16 takes in a big filter list](/en/perf-list-limits-q16.md)
   - [How many entries a G8S takes in a big filter list (old: 6.5.260910)](/en/perf-list-limits-6.5.md)

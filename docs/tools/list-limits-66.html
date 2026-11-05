@@ -15,7 +15,9 @@
     font: 14px/1.5 -apple-system, "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; }
   .wrap { padding: 16px; max-width: 880px; }
   h3 { margin: 0 0 4px; font-size: 16px; }
-  .sub { color: var(--muted); font-size: 12.5px; margin-bottom: 14px; }
+  .sub { color: var(--muted); font-size: 12.5px; margin-bottom: 10px; }
+  .model { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; font-size: 13px; }
+  .model select { font: inherit; padding: 3px 6px; border: 1px solid var(--line); border-radius: 4px; color: var(--fg); background: var(--bg); }
   .row { display: grid; grid-template-columns: 150px 1fr 120px; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
   .row label { font-weight: 600; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
   .row label span { display: block; font-family: inherit; font-weight: 400; font-size: 11px; color: var(--muted); }
@@ -25,6 +27,7 @@
   .max b { color: var(--fg); font-variant-numeric: tabular-nums; }
   button { font: inherit; font-size: 12px; padding: 2px 8px; border: 1px solid var(--accent); color: var(--accent); background: transparent; border-radius: 4px; cursor: pointer; }
   button:hover { background: var(--accent); color: #fff; }
+  .barlabel { font-size: 12px; color: var(--muted); margin: 14px 0 -12px; }
   .bar { display: flex; height: 20px; border-radius: 4px; overflow: hidden; margin: 16px 0 4px; background: var(--free); outline: 1px solid var(--line); }
   .bar div { height: 100%; transition: width .15s; }
   .bar .ghost { background: repeating-linear-gradient(45deg, rgba(214,69,69,.0), rgba(214,69,69,.0) 4px, rgba(214,69,69,.35) 4px, rgba(214,69,69,.35) 8px); }
@@ -41,7 +44,7 @@
   details { margin-top: 14px; font-size: 12.5px; color: var(--muted); }
   details summary { cursor: pointer; }
   .adv { display: grid; grid-template-columns: 1fr 110px; gap: 6px 10px; align-items: center; margin-top: 8px; max-width: 520px; }
-  .adv input { padding: 3px 6px; border: 1px solid var(--line); border-radius: 4px; font: inherit; text-align: right; color: var(--fg); background: var(--bg); }
+  .adv input, .adv select { padding: 3px 6px; border: 1px solid var(--line); border-radius: 4px; font: inherit; text-align: right; color: var(--fg); background: var(--bg); }
   @media (max-width: 560px) {
     .row { grid-template-columns: 1fr 110px; }
     .row label { grid-column: 1 / 3; }
@@ -52,6 +55,9 @@
 <body>
 <div class="wrap">
   <h3 id="t-title"></h3>
+  <div class="model"><span id="t-modelsel"></span>
+    <select id="model"><option value="g8s">G8S (6.6)</option><option value="t12s">T12S (6.6)</option><option value="q16">Q16 (7.6)</option></select>
+  </div>
   <div class="sub" id="t-sub"></div>
 
   <div class="row">
@@ -79,6 +85,7 @@
     <div class="max"><span id="m-ip"></span><button data-max="ip"></button></div>
   </div>
 
+  <div class="barlabel" id="t-bar1"></div>
   <div class="bar" id="bar">
     <div id="b-dns" style="background:var(--dns)"></div>
     <div id="b-cidr" style="background:var(--cidr)"></div>
@@ -87,6 +94,15 @@
     <div id="b-ghost" class="ghost"></div>
   </div>
   <div class="legend" id="legend"></div>
+  <div id="pool2" style="display:none">
+    <div class="barlabel" id="t-bar2"></div>
+    <div class="bar" id="bar2">
+      <div id="c-cidr" style="background:var(--cidr)"></div>
+      <div id="c-ipv6" style="background:var(--v6)"></div>
+      <div id="c-ghost" class="ghost"></div>
+    </div>
+    <div class="legend" id="legend2"></div>
+  </div>
 
   <table>
     <thead><tr><th id="h-op"></th><th id="h-need"></th><th class="num" id="h-slack"></th><th id="h-res"></th></tr></thead>
@@ -98,6 +114,9 @@
     <summary id="t-adv"></summary>
     <div class="adv">
       <span id="a-boot"></span><input type="number" id="boot" value="890" step="10">
+      <span id="a-sep"></span><select id="sep"><option value="0"></option><option value="1"></option></select>
+      <span id="a-treeb"></span><input type="number" id="treeb" value="21000" step="100">
+      <span id="a-tmpfs"></span><input type="number" id="tmpfs" value="400" step="16">
       <span id="a-ram"></span><input type="number" id="ram" value="125" step="2">
       <span id="a-v6b"></span><input type="number" id="v6b" value="4900" step="50">
       <span id="a-cidrb"></span><input type="number" id="cidrb" value="260" step="2">
@@ -112,101 +131,163 @@
 (function () {
   "use strict";
   var EN = /[?&]lang=en\b/.test(location.search);
+  var Q = (location.search.match(/[?&]model=(g8s|t12s|q16)\b/) || [])[1] || "g8s";
+  // Per model: B = the pool the hash tables (and, on MIPS, the trees) come from -- bootmem on MIPS, hugepages on
+  // dpdk; R = where dpdk keeps its trees (the engine's own Linux memory); RAM = the ceiling on one list's XML;
+  // per-entry costs and the sliders' reach. Each is fitted to that model's measured single-list limits.
+  var PRESET = {
+    g8s:  { B: 890,   sep: 0, R: 0,     RAM: 125,  TMPFS: 400,  v6b: 4900, cidrb: 260, dnsb: 346,
+            cap: { dns: 1500000, cidr: 2000000, ipv6: 120000, ip: 2500000 }, n: { dns: 500000, cidr: 300000, ipv6: 20000, ip: 500000 } },
+    t12s: { B: 13800, sep: 0, R: 0,     RAM: 900,  TMPFS: 2048,  v6b: 4300, cidrb: 242, dnsb: 347,
+            cap: { dns: 15000000, cidr: 15000000, ipv6: 3000000, ip: 20000000 }, n: { dns: 3000000, cidr: 2000000, ipv6: 500000, ip: 3000000 } },
+    q16:  { B: 5300,  sep: 1, R: 19500, RAM: 1900, TMPFS: 4096, v6b: 4300, cidrb: 242, dnsb: 347,
+            cap: { dns: 10000000, cidr: 30000000, ipv6: 3500000, ip: 30000000 }, n: { dns: 3000000, cidr: 3000000, ipv6: 500000, ip: 3000000 } }
+  };
   var T = EN ? {
     title: "How many entries the lists can hold together (6.6 / 7.6)",
-    sub: "G8S, firmware 6.6.261103, flow tables IPv4 160,000 (flowCacheBaseSize 10000) / IPv6 50,000. Every qualifying list now lives in bootmem, and a live update holds the lists in use plus the new one at once. A model from the single-list limits on this page, not a guarantee; tree sizes depend on how the prefixes are spread.",
+    modelsel: "Model:",
+    sub: {
+      g8s: "G8S, firmware 6.6.261103, flow tables IPv4 160,000 (flowCacheBaseSize 10000) / IPv6 50,000, MEC off. Every qualifying list lives in bootmem, and a live update holds the lists in use plus the new one at once. A model from the single-list limits measured on this page, not a guarantee; tree sizes depend on how the prefixes are spread.",
+      t12s: "T12S, firmware 6.6.261104, the shipped flow tables (flowCacheBaseSize 150000 / flowv6TableSize 500000), MEC off. 32 GB of DRAM, of which Linux has 4 GB and /data (the tmpfs the lists are uploaded into) 2 GB. Lists and trees live in bootmem, as on the G8S, with about 15 times the room. A model from the limits measured on the T12S page.",
+      q16: "Q16, firmware 7.6.261104, the shipped settings. The hash tables (dns, single addresses) come out of the 10 GB of hugepages, of which about 5.5 GB is free after the engine's own tables; the trees (CIDR, IPv6) are ordinary memory of the engine process (48 GB in the box, ~20 GB usable for them); /data is a 4 GB tmpfs. A model from the limits measured on the Q16 page."
+    },
     max: "most with the others as set:", setmax: "use", adv: "Model parameters",
-    boot: "Bootmem for lists (MiB)", ram: "Single-address XML ceiling (MiB)",
+    boot: "Pool for the hash tables (MiB)", sep: "Where the trees live", sep0: "the same pool (bootmem, MIPS)", sep1: "the engine's Linux memory (dpdk)", treeb: "Pool for the trees when separate (MiB)",
+    tmpfs: "/data tmpfs for the lists (MiB)", ram: "Single-address XML ceiling (MiB)",
     v6b: "ipv6.addr tree bytes/entry", cidrb: "ip CIDR tree bytes/entry", dnsb: "dns table bytes/entry",
     dnslen: "Average domain-name length (chars)", warn: "Below this headroom it is borderline (MiB)",
-    l_dns: "hash table, ~346 B/entry here", l_cidr: "radix tree, random /24 here", l_ipv6: "radix tree, random /128 here", l_ip: "single addresses, hash table (tiny)",
+    l_dns: "hash table, ~347 B/entry", l_cidr: "radix tree, random /24 here", l_ipv6: "radix tree, random /128 here", l_ip: "single addresses, hash table (tiny)",
+    bar1: "Hash tables' pool (and the trees on MIPS)", bar2: "Trees' pool (the engine's Linux memory)",
     op: "Operation", need: "What has to fit", slack: "Headroom", res: "Result",
     ok: "OK", warn2: "borderline", bad: "fails", na: "-",
     o_dns: "Update the dns.qry.name list live", o_cidr: "Update the ip.addr CIDR list live",
     o_v6: "Update the ipv6.addr list live", o_ip: "Update the ip.addr single-address list live", o_re: "Full reload / reboot (builds every table once)",
     n_hash: "2H + T: every hash table counted twice, plus the trees",
     n_tree: "2H + T + this tree again (the hash tables are still doubled)",
+    n_hash_s: "2H in the hash tables' pool",
+    n_tree_s: "2H in the hash tables' pool, and T + this tree again in the trees' pool",
     n_ram: "two copies of the list's XML in the /data tmpfs",
+    n_tmp: "two copies of this list's XML plus its GDP file in the /data tmpfs",
+    f_tmp: "the GDP file cannot be written (writing run1.gdp failed: No space left on device); the old list stays in force; bigger still and the second XML does not even upload",
     n_re: "H + T: every table once",
+    n_re_s: "H in the hash tables' pool, T in the trees' pool",
     f_live: "the log says GDP reload failed: staying on hash table N; the old list stays in force",
+    f_live_s: "a hash table that does not fit: GDP reload failed, the old list stays; a tree that does not fit in Linux memory is worse -- the box runs out of memory and its management services die (seen on .152 at 3,000,000 random IPv6 addresses)",
     f_ram: "the upload cannot be written; nothing restarts pywww on MIPS; use scp, not the web page",
     f_re: "that filter is left empty (run1.xml.gdp load fail); the others are unaffected",
-    leg_dns: "dns table", leg_cidr: "CIDR tree", leg_ipv6: "IPv6 tree", leg_ip: "single-addr table", leg_ghost: "+ live update: hash tables again + largest tree", leg_free: "free",
+    leg_dns: "dns table", leg_cidr: "CIDR tree", leg_ipv6: "IPv6 tree", leg_ip: "single-addr table", leg_ghost: "+ live update: hash tables again + largest tree", leg_ghost_s: "+ live update: hash tables again", leg_ghost2: "+ live update: largest tree again", leg_free: "free",
     v_ok: "Every list can be updated live and a full reload keeps all of them.",
     v_warn: "Fits, but with little headroom: a step more and the next live update of the largest list will not fit.",
     v_bad: "Does not fit: ",
-    model: "Model, verified on .188. Bootmem for lists B ~= 890 MiB at flow 10000/50000. H = the hash tables (dns at ~346 B/entry, single ip at ~11 B = 8 x 4/3), T = the trees (ip CIDR ~260 B for random /24, ipv6 ~4.9 KB for random /128; both cost one 56-byte node per distinct prefix bit, so whole networks as CIDR and clustered addresses cost far less -- change the per-entry figures for your own lists). The inactive index that a live load builds copies every hash table but shares the trees by reference, rebuilding only the tree it touches, so a hash-list update needs 2H + T <= B, a tree update needs 2H + T + that tree <= B (the hash tables are still doubled -- .188's log showed an ipv6 update copying the whole 277 MB dns table), and a full reload or reboot needs H + T <= B. Single addresses barely touch bootmem and are bounded by the /data tmpfs instead: about 125 MiB of list XML (2,100,000 single ip.addr) uploads, more wedges pywww. B and the per-entry costs are fitted to the four single-list caps and two multi-list combos measured on .188 (2026-11-04); other mixes were not each run."
+    model: "H = the hash tables (dns at ~347 B/entry, single ip at ~11 B = 8 x 4/3), T = the trees (ip CIDR ~240-260 B for random /24, ipv6 ~4.3-4.9 KB for random /128; both cost one 56-byte node per distinct prefix bit, so whole networks as CIDR and clustered addresses cost far less -- change the per-entry figures for your own lists). The inactive index that a live load builds copies every hash table but shares the trees by reference, rebuilding only the tree it touches: a hash-list update needs 2H + T, a tree update 2H + T + that tree, a full reload or reboot H + T. On MIPS all of it is bootmem (one pool, B); on dpdk the hash tables are hugepages (B) and the trees the engine's Linux memory (R), so the two are counted apart. Every live update also needs the /data tmpfs to hold the list's XML twice plus its GDP file (what stops dns on a T12S at 11,000,000); single addresses barely touch the pools and are bounded by that and, on a G8S, by Linux RAM. Fitted to the measured single-list caps of each model (G8S 2026-11-03/04, two multi-list combos verified on .188; T12S and Q16 2026-11-05, single lists only)."
   } : {
     title: "清單同時放上去，各能放幾筆(6.6 / 7.6)",
-    sub: "G8S,韌體 6.6.261103,flow table IPv4 160,000(flowCacheBaseSize 10000)/ IPv6 50,000。新韌體裡每種符合條件的清單都放在 bootmem,即時更新時「使用中的所有表 + 新表」會同時存在。依本頁的單一清單上限擬合的模型，不是保證值;樹的大小取決於網段怎麼分佈。",
+    modelsel: "機型:",
+    sub: {
+      g8s: "G8S,韌體 6.6.261103,flow table IPv4 160,000(flowCacheBaseSize 10000)/ IPv6 50,000,MEC 關閉。每種符合條件的清單都放在 bootmem,即時更新時「使用中的所有表 + 新表」會同時存在。依本頁的單一清單上限擬合的模型,不是保證值;樹的大小取決於網段怎麼分佈。",
+      t12s: "T12S,韌體 6.6.261104,出廠的 flow table(flowCacheBaseSize 150000 / flowv6TableSize 500000),MEC 關閉。DRAM 32 GB,其中 Linux 4 GB、上傳清單用的 /data tmpfs 2 GB。清單和樹都和 G8S 一樣放在 bootmem,空間約為 G8S 的 15 倍。依 T12S 頁量到的上限擬合的模型。",
+      q16: "Q16,韌體 7.6.261104,出廠設定。hash 表(dns、單一位址)來自 10 GB 的 hugepage,扣掉引擎自己的表之後約剩 5.5 GB;樹(CIDR、IPv6)放在引擎程序的一般記憶體(機器 48 GB,可用約 20 GB);/data 是 4 GB 的 tmpfs。依 Q16 頁量到的上限擬合的模型。"
+    },
     max: "其他維持目前設定時最多:", setmax: "套用", adv: "模型參數",
-    boot: "清單可用的 bootmem(MiB)", ram: "單一位址 XML 上限(MiB)",
+    boot: "hash 表的空間(MiB)", sep: "樹放在哪裡", sep0: "同一個空間(bootmem,MIPS)", sep1: "引擎的 Linux 記憶體(dpdk)", treeb: "樹分開放時的空間(MiB)",
+    tmpfs: "清單可用的 /data tmpfs(MiB)", ram: "單一位址 XML 上限(MiB)",
     v6b: "ipv6.addr 樹每筆 bytes", cidrb: "ip CIDR 樹每筆 bytes", dnsb: "dns 表每筆 bytes",
     dnslen: "網域名稱平均長度(字元)", warn: "餘裕低於此值視為臨界(MiB)",
-    l_dns: "hash table,此處每筆約 346 B", l_cidr: "radix 樹,此處用隨機 /24", l_ipv6: "radix 樹,此處用隨機 /128", l_ip: "單一位址,hash table(很小)",
+    l_dns: "hash table,每筆約 347 B", l_cidr: "radix 樹,此處用隨機 /24", l_ipv6: "radix 樹,此處用隨機 /128", l_ip: "單一位址,hash table(很小)",
+    bar1: "hash 表的空間(MIPS 上樹也在這裡)", bar2: "樹的空間(引擎的 Linux 記憶體)",
     op: "動作", need: "需要放得下", slack: "餘裕", res: "結果",
     ok: "可以", warn2: "臨界", bad: "失敗", na: "-",
     o_dns: "即時更新 dns.qry.name 清單", o_cidr: "即時更新 ip.addr CIDR 清單",
     o_v6: "即時更新 ipv6.addr 清單", o_ip: "即時更新 ip.addr 單一位址清單", o_re: "完整 reload / 重開機(每張表各建一次)",
     n_hash: "2H + T:每張 hash 表算兩份,加上樹",
     n_tree: "2H + T + 這棵樹再一份(hash 表照樣算兩份)",
+    n_hash_s: "hash 表的空間要放得下 2H",
+    n_tree_s: "hash 表的空間放 2H,樹的空間放 T + 這棵樹再一份",
     n_ram: "這份清單的 XML 在 /data tmpfs 裡要放得下兩份",
+    n_tmp: "這份清單的兩份 XML 加上 GDP 檔要放進 /data tmpfs",
+    f_tmp: "GDP 檔寫不進去(writing run1.gdp failed: No space left on device),舊清單繼續生效;再大一點連第二份 XML 都上傳不了",
     n_re: "H + T:每張表各一份",
+    n_re_s: "hash 表的空間放 H,樹的空間放 T",
     f_live: "log 出現 GDP reload failed: staying on hash table N,舊清單繼續生效",
+    f_live_s: "hash 表放不下:GDP reload failed,舊清單繼續生效;樹在 Linux 記憶體放不下則嚴重得多——機器記憶體耗盡,管理服務被殺掉(.152 放 3,000,000 筆隨機 IPv6 時發生過)",
     f_ram: "新檔寫不進去;MIPS 上沒有程式會重啟 pywww,大檔請用 scp 不要用網頁",
     f_re: "那個 filter 會是空的(run1.xml.gdp load fail),其他不受影響",
-    leg_dns: "dns 表", leg_cidr: "CIDR 樹", leg_ipv6: "IPv6 樹", leg_ip: "單一位址表", leg_ghost: "+ 即時更新:hash 表再一份 + 最大的樹", leg_free: "剩餘",
+    leg_dns: "dns 表", leg_cidr: "CIDR 樹", leg_ipv6: "IPv6 樹", leg_ip: "單一位址表", leg_ghost: "+ 即時更新:hash 表再一份 + 最大的樹", leg_ghost_s: "+ 即時更新:hash 表再一份", leg_ghost2: "+ 即時更新:最大的樹再一份", leg_free: "剩餘",
     v_ok: "每種清單都能即時更新，完整 reload 也不會掉任何一份。",
     v_warn: "放得下，但餘裕很小：再多一步，最大那份清單的下一次即時更新就放不下了。",
     v_bad: "放不下：",
-    model: "模型,已在 .188 驗證。清單可用的 bootmem B(flow 10000/50000 下約 890 MiB)。H = 所有 hash 表(dns 每筆約 346 B、單一 ip 約 11 B = 8 x 4/3),T = 所有樹(ip CIDR 隨機 /24 約 260 B、ipv6 隨機 /128 約 4.9 KB;兩種樹都是每個相異 prefix bit 一個 56-byte 節點,所以整段網段寫成 CIDR、位址集中在少數網段都便宜得多,自己的清單可改每筆 bytes)。即時載入建的另一個 index 會把每張 hash 表複製一份,但樹是用 reference 共享、只重建正在更新的那一棵——所以更新 hash 清單需要 2H + T ≤ B,更新樹需要 2H + T + 那棵樹 ≤ B(hash 表照樣被複製一份:.188 的 log 顯示更新 ipv6 時連 277 MB 的 dns 表也複製了一份),完整 reload / 重開機需要 H + T ≤ B。單一位址幾乎不佔 bootmem,改由 /data tmpfs 限制:約 125 MiB 的清單 XML(2,100,000 筆單一 ip.addr)能上傳,再多 pywww 會卡住。B 與每筆成本以 .188 上四個單一清單上限和兩組多清單組合擬合(2026-11-04),其他組合沒有逐一跑。"
+    model: "H = 所有 hash 表(dns 每筆約 347 B、單一 ip 約 11 B = 8 x 4/3),T = 所有樹(ip CIDR 隨機 /24 約 240-260 B、ipv6 隨機 /128 約 4.3-4.9 KB;兩種樹都是每個相異 prefix bit 一個 56-byte 節點,所以整段網段寫成 CIDR、位址集中在少數網段都便宜得多,自己的清單可改每筆 bytes)。即時載入建的另一個 index 會把每張 hash 表複製一份,但樹是用 reference 共享、只重建正在更新的那一棵:更新 hash 清單需要 2H + T,更新樹需要 2H + T + 那棵樹,完整 reload / 重開機需要 H + T。MIPS 上這些全在 bootmem(同一個空間 B);dpdk 上 hash 表在 hugepage(B)、樹在引擎的 Linux 記憶體(R),分開計算。每次即時更新還需要 /data tmpfs 同時放得下這份清單的兩份 XML 與 GDP 檔(T12S 的 dns 就是卡在 11,000,000 這條);單一位址幾乎不佔前兩者,由這條與(G8S 上)Linux 記憶體限制。各機型的參數以量到的單一清單上限擬合(G8S 2026-11-03/04,另在 .188 驗證兩組多清單組合;T12S 與 Q16 2026-11-05,只量單一清單)。"
   };
   document.documentElement.lang = EN ? "en" : "zh-TW";
 
   var MiB = 1048576;
-  var CAP = { dns: 1500000, cidr: 2000000, ipv6: 120000, ip: 2500000 };
-  var n = { dns: 500000, cidr: 300000, ipv6: 20000, ip: 500000 };
+  var CAP = {}, n = {};
   var $ = function (id) { return document.getElementById(id); };
   function fmt(x) { return Math.round(x).toLocaleString("en-US"); }
   function par() {
     return {
-      B: +$("boot").value || 890, RAM: +$("ram").value || 125,
+      B: +$("boot").value || 890, sep: $("sep").value === "1", R: +$("treeb").value || 0, RAM: +$("ram").value || 125, TMPFS: +$("tmpfs").value || 400,
       v6b: +$("v6b").value || 4900, cidrb: +$("cidrb").value || 260, dnsb: +$("dnsb").value || 346,
       L: Math.max(1, +$("dnslen").value || 24), W: Math.max(0, +$("warnm").value)
     };
   }
-  // bootmem table/tree size of each kind, in MiB
+  function applyPreset(k) {
+    var p = PRESET[k];
+    $("boot").value = p.B; $("sep").value = String(p.sep); $("treeb").value = p.R || 21000; $("ram").value = p.RAM; $("tmpfs").value = p.TMPFS;
+    $("v6b").value = p.v6b; $("cidrb").value = p.cidrb; $("dnsb").value = p.dnsb;
+    CAP = Object.assign({}, p.cap); n = Object.assign({}, p.n);
+    ["dns", "cidr", "ipv6", "ip"].forEach(function (t) {
+      var step = t === "ipv6" ? (CAP[t] > 500000 ? 10000 : 1000) : 10000;
+      $("r-" + t).max = CAP[t]; $("n-" + t).max = CAP[t]; $("r-" + t).step = step; $("n-" + t).step = step;
+    });
+    $("t-sub").textContent = T.sub[k];
+  }
+  // table/tree size of each kind, in MiB
   function tbl(v, p) {
-    return {
-      dns: v.dns * p.dnsb / MiB,
-      cidr: v.cidr * p.cidrb / MiB,
-      ipv6: v.ipv6 * p.v6b / MiB,
-      ip: v.ip * 10.7 / MiB
-    };
+    return { dns: v.dns * p.dnsb / MiB, cidr: v.cidr * p.cidrb / MiB, ipv6: v.ipv6 * p.v6b / MiB, ip: v.ip * 10.7 / MiB };
   }
   // XML in the /data tmpfs, MiB (one copy)
   function xml(t, v, p) {
     return t === "ip" ? v.ip * 61 / MiB : t === "dns" ? v.dns * (52 + p.L) / MiB
       : t === "cidr" ? v.cidr * 66 / MiB : v.ipv6 * 88 / MiB;
   }
+  // the GDP file the conversion writes beside the XML, MiB: names id4+len4+text, single ip id4+addr4, a prefix
+  // id4+addr+bits1
+  function gdp(t, v, p) {
+    return t === "ip" ? v.ip * 8 / MiB : t === "dns" ? v.dns * (8 + p.L) / MiB : t === "cidr" ? v.cidr * 9 / MiB : v.ipv6 * 21 / MiB;
+  }
   // every operation the lists have to survive, headroom in MiB. The inactive index copies every hash table
   // (dns, single ip) and shares the trees by reference, rebuilding only the tree being updated -- so a live
-  // update doubles the hash tables (2H) always, and adds a second copy of the one tree it touches.
+  // update doubles the hash tables (2H) always, and adds a second copy of the one tree it touches. On MIPS
+  // both come out of bootmem (B); on dpdk the hash tables are hugepages (B) and the trees Linux memory (R).
   function ops(v, p) {
-    var tb = tbl(v, p), H = tb.dns + tb.ip, Tr = tb.cidr + tb.ipv6, sum = H + Tr, out = [];
-    if (v.dns) out.push({ k: "dns", op: T.o_dns, need: T.n_hash, fail: T.f_live, s: p.B - (2 * H + Tr) });
-    if (v.cidr) out.push({ k: "cidr", op: T.o_cidr, need: T.n_tree, fail: T.f_live, s: p.B - (2 * H + Tr + tb.cidr) });
-    if (v.ipv6) out.push({ k: "ipv6", op: T.o_v6, need: T.n_tree, fail: T.f_live, s: p.B - (2 * H + Tr + tb.ipv6) });
-    // single addresses: bootmem is trivial (2H dominated by dns), the /data tmpfs caps it instead
-    if (v.ip) out.push({ k: "ip", op: T.o_ip, need: T.n_ram, fail: T.f_ram, s: p.RAM - xml("ip", v, p) });
-    if (sum > 0) out.push({ k: "re", op: T.o_re, need: T.n_re, fail: T.f_re, s: p.B - sum });
-    return { list: out, tb: tb, sum: sum, H: H, Tr: Tr };
+    var tb = tbl(v, p), H = tb.dns + tb.ip, Tr = tb.cidr + tb.ipv6, out = [];
+    var hashUpd = p.sep ? p.B - 2 * H : p.B - (2 * H + Tr);
+    var treeUpd = function (t) { return p.sep ? Math.min(p.B - 2 * H, p.R - (Tr + tb[t])) : p.B - (2 * H + Tr + tb[t]); };
+    var reload = p.sep ? Math.min(p.B - H, p.R - Tr) : p.B - (H + Tr);
+    // a live update also needs the /data tmpfs to hold this list's XML twice (the upload and the copy in
+    // running-config) plus the GDP file the conversion writes -- what stops dns on a T12S
+    var tmp = function (t) { return p.TMPFS - (2 * xml(t, v, p) + gdp(t, v, p)); };
+    var row = function (k, op, need, fail, pool) {
+      var tm = tmp(k);
+      return tm < pool ? { k: k, op: op, need: T.n_tmp, fail: T.f_tmp, s: tm } : { k: k, op: op, need: need, fail: fail, s: pool };
+    };
+    if (v.dns) out.push(row("dns", T.o_dns, p.sep ? T.n_hash_s : T.n_hash, p.sep ? T.f_live_s : T.f_live, hashUpd));
+    if (v.cidr) out.push(row("cidr", T.o_cidr, p.sep ? T.n_tree_s : T.n_tree, p.sep ? T.f_live_s : T.f_live, treeUpd("cidr")));
+    if (v.ipv6) out.push(row("ipv6", T.o_v6, p.sep ? T.n_tree_s : T.n_tree, p.sep ? T.f_live_s : T.f_live, treeUpd("ipv6")));
+    // single addresses: the pools are trivial (2H dominated by dns); the /data tmpfs and, on a G8S, Linux RAM
+    // (the XML ceiling) cap it instead
+    if (v.ip) { var ipRam = p.RAM - xml("ip", v, p), ipTmp = tmp("ip"), ipPool = hashUpd;
+      out.push(ipTmp < Math.min(ipRam, ipPool) ? { k: "ip", op: T.o_ip, need: T.n_tmp, fail: T.f_tmp, s: ipTmp } : { k: "ip", op: T.o_ip, need: T.n_ram, fail: T.f_ram, s: Math.min(ipRam, ipPool) }); }
+    if (H + Tr > 0) out.push({ k: "re", op: T.o_re, need: p.sep ? T.n_re_s : T.n_re, fail: T.f_re, s: reload });
+    return { list: out, tb: tb, H: H, Tr: Tr };
   }
   function fits(v, p) { return ops(v, p).list.every(function (o) { return o.s >= 0; }); }
   function maxOf(t, p) {
     var lo = 0, hi = CAP[t], v = Object.assign({}, n);
     v[t] = 0; if (!fits(v, p)) return 0;
-    while (hi - lo > (t === "ipv6" ? 500 : 5000)) { var mid = Math.floor((lo + hi) / 2); v[t] = mid; if (fits(v, p)) lo = mid; else hi = mid; }
+    var res = Math.max(1000, Math.round(CAP[t] / 300));
+    while (hi - lo > res) { var mid = Math.floor((lo + hi) / 2); v[t] = mid; if (fits(v, p)) lo = mid; else hi = mid; }
     return lo;
   }
   function chip(s, p) {
@@ -221,18 +302,41 @@
       var m = maxOf(t, p); $("m-" + t).innerHTML = T.max + " <b>" + fmt(m) + "</b>";
       var b = document.querySelector('[data-max="' + t + '"]'); b.textContent = T.setmax; b.dataset.v = m;
     });
-    // bar: the four tables, then a hatched ghost for the worst live update's extra = the hash tables copied
-    // again (H) plus a second copy of the largest tree, against B
-    var ghost = r.H + Math.max(r.tb.cidr, r.tb.ipv6, 0);
-    ["dns", "cidr", "ipv6", "ip"].forEach(function (t) { $("b-" + t).style.width = (100 * r.tb[t] / p.B) + "%"; });
-    $("b-ghost").style.width = (100 * Math.min(ghost, Math.max(0, p.B - r.sum)) / p.B) + "%";
-    $("legend").innerHTML =
-      '<span><i style="background:var(--dns)"></i>' + T.leg_dns + " " + fmt(r.tb.dns) + "</span>" +
-      '<span><i style="background:var(--cidr)"></i>' + T.leg_cidr + " " + fmt(r.tb.cidr) + "</span>" +
-      '<span><i style="background:var(--v6)"></i>' + T.leg_ipv6 + " " + fmt(r.tb.ipv6) + "</span>" +
-      '<span><i style="background:var(--ip)"></i>' + T.leg_ip + " " + fmt(r.tb.ip) + "</span>" +
-      '<span><i class="ghost" style="display:inline-block"></i>' + T.leg_ghost + " " + fmt(ghost) + "</span>" +
-      '<span><i style="background:var(--free)"></i>' + T.leg_free + " " + fmt(Math.max(0, p.B - r.sum - ghost)) + " / " + fmt(p.B) + " MiB</span>";
+    var bigTree = Math.max(r.tb.cidr, r.tb.ipv6, 0);
+    if (!p.sep) {
+      // one pool: the four tables, then a hatched ghost for the worst live update's extra = the hash tables
+      // copied again (H) plus a second copy of the largest tree, against B
+      var sum = r.H + r.Tr, ghost = r.H + bigTree;
+      $("t-bar1").textContent = T.bar1; $("pool2").style.display = "none";
+      ["dns", "cidr", "ipv6", "ip"].forEach(function (t) { $("b-" + t).style.width = (100 * r.tb[t] / p.B) + "%"; });
+      $("b-ghost").style.width = (100 * Math.min(ghost, Math.max(0, p.B - sum)) / p.B) + "%";
+      $("legend").innerHTML =
+        '<span><i style="background:var(--dns)"></i>' + T.leg_dns + " " + fmt(r.tb.dns) + "</span>" +
+        '<span><i style="background:var(--cidr)"></i>' + T.leg_cidr + " " + fmt(r.tb.cidr) + "</span>" +
+        '<span><i style="background:var(--v6)"></i>' + T.leg_ipv6 + " " + fmt(r.tb.ipv6) + "</span>" +
+        '<span><i style="background:var(--ip)"></i>' + T.leg_ip + " " + fmt(r.tb.ip) + "</span>" +
+        '<span><i class="ghost" style="display:inline-block"></i>' + T.leg_ghost + " " + fmt(ghost) + "</span>" +
+        '<span><i style="background:var(--free)"></i>' + T.leg_free + " " + fmt(Math.max(0, p.B - sum - ghost)) + " / " + fmt(p.B) + " MiB</span>";
+    } else {
+      // two pools: hugepages hold the hash tables (and their copy), Linux memory the trees (and the copy of the
+      // one being updated)
+      $("t-bar1").textContent = T.bar1; $("t-bar2").textContent = T.bar2; $("pool2").style.display = "";
+      $("b-dns").style.width = (100 * r.tb.dns / p.B) + "%"; $("b-ip").style.width = (100 * r.tb.ip / p.B) + "%";
+      $("b-cidr").style.width = "0"; $("b-ipv6").style.width = "0";
+      $("b-ghost").style.width = (100 * Math.min(r.H, Math.max(0, p.B - r.H)) / p.B) + "%";
+      $("legend").innerHTML =
+        '<span><i style="background:var(--dns)"></i>' + T.leg_dns + " " + fmt(r.tb.dns) + "</span>" +
+        '<span><i style="background:var(--ip)"></i>' + T.leg_ip + " " + fmt(r.tb.ip) + "</span>" +
+        '<span><i class="ghost" style="display:inline-block"></i>' + T.leg_ghost_s + " " + fmt(r.H) + "</span>" +
+        '<span><i style="background:var(--free)"></i>' + T.leg_free + " " + fmt(Math.max(0, p.B - 2 * r.H)) + " / " + fmt(p.B) + " MiB</span>";
+      $("c-cidr").style.width = (100 * r.tb.cidr / p.R) + "%"; $("c-ipv6").style.width = (100 * r.tb.ipv6 / p.R) + "%";
+      $("c-ghost").style.width = (100 * Math.min(bigTree, Math.max(0, p.R - r.Tr)) / p.R) + "%";
+      $("legend2").innerHTML =
+        '<span><i style="background:var(--cidr)"></i>' + T.leg_cidr + " " + fmt(r.tb.cidr) + "</span>" +
+        '<span><i style="background:var(--v6)"></i>' + T.leg_ipv6 + " " + fmt(r.tb.ipv6) + "</span>" +
+        '<span><i class="ghost" style="display:inline-block"></i>' + T.leg_ghost2 + " " + fmt(bigTree) + "</span>" +
+        '<span><i style="background:var(--free)"></i>' + T.leg_free + " " + fmt(Math.max(0, p.R - r.Tr - bigTree)) + " / " + fmt(p.R) + " MiB</span>";
+    }
     $("ops").innerHTML = r.list.length ? r.list.map(function (o) {
       return "<tr><td>" + o.op + (o.s < 0 ? '<br><span style="color:var(--bad);font-size:12px">' + o.fail + "</span>" : "") +
         "</td><td>" + o.need + '</td><td class="num">' + (o.s >= 0 ? "+" : "") + o.s.toFixed(1) + " MiB</td><td>" + chip(o.s, p) + "</td></tr>";
@@ -246,10 +350,11 @@
   }
   function set(t, val) { n[t] = Math.max(0, Math.min(CAP[t], Math.round(+val || 0))); render(); }
 
-  ["title", "sub", "adv", "model"].forEach(function (k) { $("t-" + k).textContent = T[k]; });
+  ["title", "adv", "model", "modelsel"].forEach(function (k) { $("t-" + k).textContent = T[k]; });
   ["dns", "cidr", "ipv6", "ip"].forEach(function (t) { $("l-" + t).textContent = T["l_" + t]; });
-  $("a-boot").textContent = T.boot; $("a-ram").textContent = T.ram; $("a-v6b").textContent = T.v6b;
+  $("a-boot").textContent = T.boot; $("a-sep").textContent = T.sep; $("a-treeb").textContent = T.treeb; $("a-tmpfs").textContent = T.tmpfs; $("a-ram").textContent = T.ram; $("a-v6b").textContent = T.v6b;
   $("a-cidrb").textContent = T.cidrb; $("a-dnsb").textContent = T.dnsb; $("a-dnslen").textContent = T.dnslen; $("a-warn").textContent = T.warn;
+  $("sep").options[0].textContent = T.sep0; $("sep").options[1].textContent = T.sep1;
   $("h-op").textContent = T.op; $("h-need").textContent = T.need; $("h-slack").textContent = T.slack; $("h-res").textContent = T.res;
   ["dns", "cidr", "ipv6", "ip"].forEach(function (t) {
     $("r-" + t).addEventListener("input", function (e) { set(t, e.target.value); });
@@ -257,8 +362,9 @@
     $("n-" + t).addEventListener("change", function () { render(); });
     document.querySelector('[data-max="' + t + '"]').addEventListener("click", function (e) { set(t, e.target.dataset.v); });
   });
-  ["boot", "ram", "v6b", "cidrb", "dnsb", "dnslen", "warnm"].forEach(function (id) { $(id).addEventListener("input", render); });
-  render();
+  ["boot", "sep", "treeb", "tmpfs", "ram", "v6b", "cidrb", "dnsb", "dnslen", "warnm"].forEach(function (id) { $(id).addEventListener("input", render); $(id).addEventListener("change", render); });
+  $("model").value = Q; $("model").addEventListener("change", function (e) { applyPreset(e.target.value); render(); });
+  applyPreset(Q); render();
   function post() { try { parent.postMessage({ listLimitsHeight: document.documentElement.scrollHeight }, "*"); } catch (e) {} }
   new ResizeObserver(post).observe(document.body); post();
 })();
