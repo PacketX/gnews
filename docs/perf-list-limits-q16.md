@@ -44,7 +44,7 @@ Q16 和 MIPS 機型最大的差別是清單放的地方不只一個:
 | `ipv6.addr` /128 | 一般記憶體的樹 | 隨機 /128 約 4.3 KB | 2,200,000 筆約 9.4 GB;3,000,000 筆約 12.9 GB |
 
 - **hugepage 的規則:使用中的每張 hash 表,再加上正在更新的那張的第二份,要一次放進 5.5 GB。** 即時載入會先建好「使用中的清單 + 新清單」再切換,所以一張 dns 表最大約 2.6 GB(7,600,000 筆);2.9 GB 的第二份就配不到(`failed to alloc from bootmem named FCDATA_HASH_TABLE_0_9101 size: 2912000000`),log 記 `GDP reload failed: staying on hash table N`,舊清單繼續生效,機器正常。
-- **一般記憶體的規則:使用中的樹,再加上正在更新那棵的第二份,要放進約 20 GB。** 兩棵 9.4 GB 的 IPv6 樹(2,200,000 筆)可以;3,000,000 筆時第二次上傳要建第二棵 12.9 GB 的樹,**沒有被拒絕,而是把 Linux 的記憶體用光**:OOM killer 把 sshd、nginx、pywww、snmpd 都殺了,封包引擎還在轉送,但 ssh 和網頁都連不上,只能斷電重開。這和 MIPS 機型不同——MIPS 的樹在 bootmem,配不到就失敗保留舊清單;Q16 的樹是一般的 malloc,Linux 會先答應再在用到時出事。**隨機的 IPv6 單一位址清單請控制在 2,000,000 筆以內**;整段網段寫成 CIDR 便宜得多。
+- **一般記憶體的規則:使用中的樹,再加上正在更新那棵的第二份,要放進約 20 GB。** 兩棵 9.4 GB 的 IPv6 樹(2,200,000 筆)可以;3,000,000 筆時第二次上傳要建第二棵 12.9 GB 的樹,**沒有被拒絕,而是把 Linux 的記憶體用光**:OOM killer 把 sshd、nginx、pywww、snmpd 都殺了,封包引擎還在轉送,但 ssh 和網頁都連不上,只能斷電重開。這和 MIPS 機型不同——MIPS 的樹在 bootmem,配不到就失敗保留舊清單;Q16 的樹是一般的 malloc,Linux 會先答應再在用到時出事。**7.6.261105 起的引擎(2.9.45)會先算出樹的大小,可用記憶體不夠(保留 2 GB 給其他程式)就拒絕,log 記 `filter N: its M-prefix tree would take X GB ... not built` 與 `GDP reload failed: staying on hash table N`,舊清單保留、機器正常**(實測:第一棵 3,000,000 筆的樹 12.05 GB 建好,第二棵在剩 7.5 GB 時被拒)。在那之前的版本,**隨機的 IPv6 單一位址清單請控制在 2,000,000 筆以內**;整段網段寫成 CIDR 便宜得多。
 - **`/data` 的規則:兩份 XML(上傳中的與 running-config 裡的)要同時放進 4 GB**;本頁的大小都離這條很遠。
 - 幾種清單同時放時三條規則都要成立,下面的小工具把它算出來。
 
@@ -57,7 +57,7 @@ Q16 和 MIPS 機型最大的差別是清單放的地方不只一個:
 ## 失敗時會發生什麼
 
 1. **hugepage 放不下(dns、單一位址)。** log 出現 `failed to alloc from bootmem named ...` 和 `GDP reload failed: staying on hash table N`,新清單沒有生效,**舊清單繼續生效**,系統正常;告警規則「過濾清單未套用」會發出。
-2. **一般記憶體放不下(CIDR、IPv6 的樹)。** 沒有安全的失敗:記憶體被用光,管理服務被 OOM killer 結束,需要斷電重開。請用上面的小工具先算,不要讓兩棵樹加起來接近 20 GB。
+2. **一般記憶體放不下(CIDR、IPv6 的樹)。** 7.6.261104 與之前:沒有安全的失敗,記憶體被用光,管理服務被 OOM killer 結束,需要斷電重開。7.6.261105 起:建樹前先算,放不下就和 hugepage 一樣失敗、舊清單保留、告警。無論哪一版,請用上面的小工具先算,不要讓兩棵樹加起來接近 20 GB。
 3. **開機或完整 reload 時放不下。** 每份清單從 GDP 重新載入,hugepage 放不下的那份 log 記 `run1.xml.gdp load fail ... not in effect`,**那個 filter 是空的**,其他清單不受影響。
 
 ## 載入要多久
