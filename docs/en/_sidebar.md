@@ -19,3 +19,4 @@
     - [T12S](/en/perf-list-limits-t12s.md)
     - [Q16](/en/perf-list-limits-q16.md)
     - [G8S (old: 6.5.260910)](/en/perf-list-limits-6.5.md)
+  - [Packets per second, 64-byte frames](/en/perf-pps-64b.md)
