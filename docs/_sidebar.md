@@ -14,7 +14,8 @@
   - [Web API:可用的呼叫與使用方式](tech-web-api.md)
   - [讓自動化與 AI 管理 GRISM](tech-agent.md)
 - 效能測試
-  - [G8S 大量過濾條件的筆數上限](perf-list-limits.md)
-  - [T12S 大量過濾條件的筆數上限](perf-list-limits-t12s.md)
-  - [Q16 大量過濾條件的筆數上限](perf-list-limits-q16.md)
-  - [G8S 大量過濾條件的筆數上限(舊版 6.5.260910)](perf-list-limits-6.5.md)
+  - 大量過濾筆數上限
+    - [G8S](perf-list-limits.md)
+    - [T12S](perf-list-limits-t12s.md)
+    - [Q16](perf-list-limits-q16.md)
+    - [G8S(舊版 6.5.260910)](perf-list-limits-6.5.md)
