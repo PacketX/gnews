@@ -242,7 +242,7 @@ An event is `{id, ts, kind, text, data}`, POSTed as JSON to each webhook with `X
 | `/grism/task/backup` | POST | admin | — | make a backup |
 | `/grism/task/download_backup` | GET | admin | — | download the backup just made |
 | `/grism/task/restore_from_file` | POST | admin | multipart `file`=`grism-backup*.tgz` | restore from a backup |
-| `/grism/task/restore` | POST | admin | — | **back to factory settings** |
+| `/grism/task/restore` | POST | admin | `keep_mgmt=1` (form or query, optional) | **back to factory settings**. With `keep_mgmt=1` the management interfaces (address, mask, gateway, enabled or not) are kept and the device comes back at its current address; without it, at the factory address. On models whose cages switch between 1G and 10G (T12S and the IM8724 models) the restored port speeds follow what the board boots with, as a restore from a backup does, so no port changes its name |
 
 ### Operations
 

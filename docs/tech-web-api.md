@@ -242,7 +242,7 @@ for port in g.get_json("/grism/task/get_statistics_json")["statistics"]:
 | `/grism/task/backup` | POST | 管理 | — | 產生備份 |
 | `/grism/task/download_backup` | GET | 管理 | — | 下載剛產生的備份檔 |
 | `/grism/task/restore_from_file` | POST | 管理 | multipart `file`=`grism-backup*.tgz` | 從備份還原 |
-| `/grism/task/restore` | POST | 管理 | — | **回復原廠設定** |
+| `/grism/task/restore` | POST | 管理 | `keep_mgmt=1`(表單或 query,可省略) | **回復原廠設定**。帶 `keep_mgmt=1` 時保留管理介面(位址、遮罩、閘道、啟用與否),設備重開後仍在原位址;不帶時回到原廠位址。T12S 等可切換 1G/10G 的機型,還原後的埠速會跟著機板開機時的設定(與從備份還原相同),不會因此錯位 |
 
 ### 維運
 
