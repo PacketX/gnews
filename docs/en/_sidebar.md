@@ -5,7 +5,6 @@
   - [Release Note](/en/)
     - [DPDK line (7.x)](/en/release-dpdk.md)
     - [MIPS line (6.x)](/en/release-mips.md)
-  - [Docs](/en/docs.md)
 - Tech notes
   - [JA4 fingerprints: computing, checking, and what went wrong](/en/tech-ja4.md)
   - [strtok on many cores](/en/tech-strtok.md)
