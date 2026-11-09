@@ -1,6 +1,6 @@
 # Packets per second with 64-byte frames
 
-How many of the smallest frames can a box forward a second **without losing one**? This page is what a G8S, a T12S and a Q16 measured with the flow table on (the factory settings) and off (an optimised set) (2026-11-06; firmware 6.6.261104 on the G8S and T12S, 7.6.261106 on the Q16). Packets per second is the limit that small-packet traffic runs into: the same pps carries more throughput as packets grow, so the 64-byte pps times the average packet size of real traffic is the box's ceiling for that traffic (0.92 Mpps × 600 bytes ≈ 4.4 Gbit/s, say).
+How many of the smallest frames can a box forward a second **without losing one**? This page is what a G8S, a T12S and a Q16 measured with the flow table on (the factory settings) and off (an optimised set) (2026-11-06 and 11-09; firmware 6.6.261104 on the G8S and T12S, 7.6.261106 on the Q16). Packets per second is the limit that small-packet traffic runs into: the same pps carries more throughput as packets grow, so the 64-byte pps times the average packet size of real traffic is the box's ceiling for that traffic (0.92 Mpps × 600 bytes ≈ 4.4 Gbit/s, say).
 
 ## Method
 
@@ -17,8 +17,8 @@ How many of the smallest frames can a box forward a second **without losing one*
 | Box under test | Generating box | In | Out |
 |---|---|---|---|
 | G8S (1G ports) | T12S | T12S P6 → G8S P2; 2 in 2 out adds T12S P5 → G8S P6 | G8S P3 → T12S P4; G8S P7 → T12S P7 |
-| T12S (10G ports) | Q16 | Q16 V7 → T12S P1; 2 in 2 out adds Q16 V6 → T12S P0 | T12S P0 → Q16 V6; T12S P1 → Q16 V7 |
-| Q16 (10G cages) | T12S (two or four generator cores a port) | T12S P1 → Q16 V7; 2 in 2 out adds T12S P0 → Q16 V6 | Q16 V6 → T12S P0; Q16 V7 → T12S P1 |
+| T12S (10G ports) | Q16 | Q16 V7 → T12S P1; 2 in 2 out adds Q16 V6 → T12S P0; 4 in 4 out adds Q16 V4 → T12S P2 and Q16 V5 → T12S P3 | T12S P0 → Q16 V6; T12S P1 → Q16 V7; T12S P3 → Q16 V5; T12S P2 → Q16 V4 |
+| Q16 (10G cages) | T12S (two to four generator cores a port) | T12S P1 → Q16 V7; 2 in 2 out adds T12S P0 → Q16 V6; 4 in 4 out adds T12S P2 → Q16 V4 and T12S P3 → Q16 V5 | Q16 V6 → T12S P0; Q16 V7 → T12S P1; Q16 V5 → T12S P3; Q16 V4 → T12S P2 |
 
 ## Results (64 bytes; Mpps = million packets a second)
 
@@ -30,25 +30,31 @@ How many of the smallest frames can a box forward a second **without losing one*
 | G8S | flow off | 2 in 2 out | **0.84** (total) | 0.85 | 1.06 (2.98) | 77% |
 | T12S | flow on (1.8M flows) | 1 in 1 out | **2.97** | 3.0 | 3.12 (5.24) | 97% |
 | T12S | flow on (1.8M flows) | 2 in 2 out | **2.94** (total) | 2.96 | 3.11 (9.80) | 98% |
+| T12S | flow on (1.8M flows) | 4 in 4 out | **3.07** (total) | 3.10 | 3.22 (18.1) | 100% |
 | T12S | flow off | 1 in 1 out | **≥ 4.34** (one generator core's limit, 0 drops) | — | — | 75% |
 | T12S | flow off | 2 in 2 out | **6.19** (total) | 6.24 | 6.45 (8.67) | 89% |
+| T12S | flow off | 4 in 4 out | **6.27** (total) | 6.33 | 6.34 (17.6) | 97% |
 | Q16 | flow on (6.35M flows) | 1 in 1 out | **≥ 6.68** (two generator cores' limit, 0 drops) | — | — | 65% |
 | Q16 | flow on (6.35M flows) | 2 in 2 out, 2 generators a port | **≥ 13.4** (the generators' limit, 0 drops) | — | — | 99% |
 | Q16 | flow on (6.35M flows) | 2 in 2 out, 4 generators a port | **15.2** (total) | 15.3 | 17.8 (26.9) | 100% |
+| Q16 | flow on (6.35M flows) | 4 in 4 out, 2 generators a port | **15.2** (total) | 15.3 | 17.9 (27.0) | 100% |
+| Q16 | flow on (6.35M flows) | 4 in 4 out, 3 generators a port | **16.1** (total) | 16.3 | 17.7 (37.1) | 100% |
 | Q16 | flow off | 1 in 1 out | **≥ 6.68** (the generators' limit, 0 drops) | — | — | 50% |
 | Q16 | flow off | 2 in 2 out, 2 generators a port | **≥ 13.4** (the generators' limit, 0 drops) | — | — | 85% |
 | Q16 | flow off | 2 in 2 out, 4 generators a port | **≥ 26.7** (the generators' limit, 0 drops; 90% of two 10G line rates) | — | — | 100% |
+| Q16 | flow off | 4 in 4 out, 2 generators a port | **≥ 26.9** (the generators' limit, 0 drops) | — | — | 100% |
+| Q16 | flow off | 4 in 4 out, 3 generators a port | **27.1** (total) | 27.2 (one frame lost in 60 s) | 34.5 (37.0) | 100% |
 
 - 64-byte line rate is 1.488 Mpps on a 1G port and 14.88 Mpps on a 10G port.
 - **G8S**: about 0.4 Mpps with the flow table on, a limit of the whole engine rather than of a port -- 2 in 2 out totals slightly less (one more port to serve); about twice that with the flow tables, L7 parsing and the rest off. Flooded at line rate it still forwards about 0.5 / 1.06 Mpps, the rest is dropped at the in port and the out port never drops.
-- **T12S**: about 3 Mpps with the flow table on, the same for 1 in 1 out and 2 in 2 out -- again the whole box's limit; 6.2 Mpps with it off, 2 in 2 out.
-- **Q16**: 15 Mpps with the flow table on; with it off it took 26.7 Mpps (everything eight T12S generator cores could offer) without a drop, so its limit is beyond this test's generators.
+- **T12S**: about 3 Mpps with the flow table on, the same for 1 in 1 out, 2 in 2 out and 4 in 4 out -- again the whole box's limit; 6.2-6.3 Mpps with it off, whatever the port count.
+- **Q16**: 15-16 Mpps with the flow table on (2 in 2 out and 4 in 4 out alike); with it off **27 Mpps without a loss** (4 in 4 out; flooded with 37 Mpps from twelve T12S generator cores it forwards 34.5, the rest counted as inDrops on the uplink ports P0-P2). Four 10G ports carry 59.5 Mpps of 64-byte frames at line rate, so 27 Mpps is about 45% of it.
 - **How full the flow table is changes the flow-on figures**, which is why this page uses 75%. The same T12S with the flow table on: 65,000 flows (3% of the table) took one generator core's 4.26 Mpps 1 in 1 out without a drop and 3.98 2 in 2 out; at 75% 2.97 / 2.94; at 87% 2.73. G8S: 65,000 flows 0.52 / 0.49, 75% 0.43 / 0.40, 90% 0.35 / 0.29.
 - **A Q16's drops are counted on the engine's uplink ports.** Flooded with 26.9 Mpps with the flow table on, the V ports still showed in = out (17.8 = 17.8) and 0 inDrops; the 540 million frames dropped were counted as inDrops on P0-P2, the 50G ports between the switch and the engine. Look at P0-P2 to see whether a Q16 drops.
 - The CPU column is the system status page's figure; below saturation it says how much is left, and 100% is the step before drops.
 
 ## The generators' own limits
 
-- One traffic-gen input takes one core. A G8S generates only about 0.33 Mpps a port, so it is never the generator; one T12S core fills a 1G port and does about 4-5 Mpps on a 10G port; one Q16 lcore does 4.26 Mpps on one port (all 64 bytes).
+- One traffic-gen input takes one core. A G8S generates only about 0.33 Mpps a port, so it is never the generator; one T12S core fills a 1G port and does about 3.4-4.3 Mpps on a 10G port, twelve cores (three on each of four ports) 37 Mpps together; one Q16 lcore does 4.3-5.2 Mpps on one port (all 64 bytes).
 - Two generators on one port: fine on the MIPS line (the PKO queue is locked, each input on its own core); on the DPDK line only safe when the port has a tx queue per core, so a generating Q16 gets one input a port.
 - What `speed` means: packets a second ≈ 131072 × speed ÷ packet_size (about 2184 × speed at 64 bytes); 0 is unpaced.
