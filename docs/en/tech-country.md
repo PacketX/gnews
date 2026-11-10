@@ -90,4 +90,4 @@ The Studio's country page says which mode is in force; in the remote mode it add
 
 - The `country.iso_code` filter is as before: it matches when either end is in that country, this site's own public addresses included.
 - IPv6 flows get no country.
-- A change of side or list reloads the engine configuration and the counters start from zero; so does "clear counters".
+- A change of side or list reloads the engine configuration and the counters start from zero; so does "clear counters". The country page's own Clear (`clear_country_counter` in the API, operator level) zeroes the country statistics alone; port, filter and flow counters stay.

@@ -164,6 +164,7 @@ A GET with nothing in its "Parameters" column takes none. "MIPS only" is the 6.6
 | `/grism/task/get_flow_service` | GET | view | — | traffic grouped by service |
 | `/grism/task/get_flow_table` | GET | view | — | the flow table |
 | `/grism/task/clear_counters` | GET | operator | — | clear every counter |
+| `/grism/task/clear_country_counter` | GET | operator | — | clear the country statistics alone (engines 2.11.45 / 2.9.48); port, filter and flow counters stay; takes effect within a second |
 | `/grism/task/clear_lite_counters` | GET | operator | — | clear the per-port counters only |
 
 ※ On 6.6.261008.4 / 7.6.261008.1 and earlier these two statistics calls answer without a session; later versions want one (a view-level account is enough). A monitoring script that does not sign in gets a 404 after the upgrade: add the sign-in.

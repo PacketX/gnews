@@ -165,6 +165,7 @@ for port in g.get_json("/grism/task/get_statistics_json")["statistics"]:
 | `/grism/task/get_flow_table` | GET | 檢視 | — | 流量表內容 |
 | `/grism/task/clear_counters` | GET | 操作 | — | 清除所有計數器 |
 | `/grism/task/clear_lite_counters` | GET | 操作 | — | 只清除每埠計數器 |
+| `/grism/task/clear_country_counter` | GET | 操作 | — | 只清除國家統計(引擎 2.11.45 / 2.9.48 起);埠、篩選器與連線的計數都不動,下一秒生效 |
 
 ※ 6.6.261008.4 / 7.6.261008.1 以及更早的版本,這兩個統計端點不需要登入就能讀取;之後的版本需要登入(檢視等級即可)。既有的監控腳本若沒有登入,升級後會收到 404,請加上登入步驟。
 
