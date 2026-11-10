@@ -84,7 +84,7 @@ G8S-MEC 與 Q16 兩台機器、四種設定的實測結果都與這張表一致�
 | 頂層 `mode` | `both` 或 `remote` |
 | 頂層 `local` / `unknown` / `undirected` | 各 `{packets, bytes, flows}`,意義如上 |
 
-Studio 的國家頁會寫出目前是哪一種模式;remote 模式多了進向、出向與「連線數 進 / 出」欄,三個額外項目不為 0 時列在各國之後。
+Studio 的國家頁會寫出目前是哪一種模式;remote 模式多了進向、出向與「連線數 進 / 出」欄,「本地對本地」不為 0 時列在各國之後。`unknown` 與 `undirected` 只在 JSON 裡,頁面不列,以免讀的人誤會。
 
 ## 不受模式影響的部分
 

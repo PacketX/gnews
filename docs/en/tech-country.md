@@ -84,7 +84,7 @@ Each entry of `country_counter[]` keeps the three fields it always had, `iso_cod
 | top-level `mode` | `both` or `remote` |
 | top-level `local` / `unknown` / `undirected` | each `{packets, bytes, flows}`, as above |
 
-The Studio's country page says which mode is in force; in the remote mode it adds the inbound, outbound and "flows in / out" columns, and the three extra rows follow the countries when they are not zero.
+The Studio's country page says which mode is in force; in the remote mode it adds the inbound, outbound and "flows in / out" columns, and "local to local" follows the countries when it is not zero. `unknown` and `undirected` are in the JSON only; the page does not list them, so as not to raise questions it cannot answer there.
 
 ## What the mode does not change
 
