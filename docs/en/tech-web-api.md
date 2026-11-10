@@ -160,7 +160,7 @@ A GET with nothing in its "Parameters" column takes none. "MIPS only" is the 6.6
 | `/grism/task/get_statistics_json` | GET | view ※ | — | `statistics` (per port: link, rates, packet and byte counts, every kind of drop and error), `sessions`, `sessionsv6`, `filter`, `packet_type_counter` |
 | `/grism/task/get_lite_statistics_json` | GET | view ※ | — | the per-port part alone: lighter, the one to poll often |
 | `/grism/task/get_filter_counter` | GET | view | — | `try_count`, `matched_count` and `matched_per_second` of each filter |
-| `/grism/task/get_country_counter` | GET | view | — | traffic by country |
+| `/grism/task/get_country_counter` | GET | view | — | traffic by country. Each entry of `country_counter[]` has always had `iso_code`, `packets`, `bytes` (both directions of every flow the country was in); engines 2.11.44 / 2.9.47 add `flows`, `in_packets`/`in_bytes`/`out_packets`/`out_bytes` (in = from the remote end to the local one), `in_flows`/`out_flows` (opened by the remote / the local end), and at the top level `mode` (`both`: each end's country, the default; `remote`: the remote end's alone, once any port has a `side` or `args.countryLocalNetworks` is set) with `local`, `unknown` and `undirected`, each `{packets, bytes, flows}`. The old fields keep their meaning, so an older reader is not affected |
 | `/grism/task/get_flow_service` | GET | view | — | traffic grouped by service |
 | `/grism/task/get_flow_table` | GET | view | — | the flow table |
 | `/grism/task/clear_counters` | GET | operator | — | clear every counter |
@@ -302,6 +302,8 @@ g.post_form("/grism/task/submit_config",
 ```
 
 Most settings take effect at once. One that changes how memory is laid out -- the size of a table, say -- only takes proper effect after a reboot: set `reboot` to `yes`, or call `reboot` afterwards.
+
+A port's attributes go as `<interfaces><ports><find name="P0">…</find></ports></interfaces>`: `description`, `enable` and, since engines 2.11.44 / 2.9.47, `side` -- `wan`, `lan` or empty -- which the country statistics go by to tell a flow's local end from its remote one; a change reloads the engine configuration. The local networks are `<args><countryLocalNetworks>10.0.0.0/8, 203.0.113.0/24</countryLocalNetworks></args>`; an empty element clears them.
 
 ### Change the configuration with a token: validate, trace, then commit-confirm
 

@@ -253,7 +253,7 @@ Needs a session. Every tab has an auto-refresh interval (10 s by default).
 | **Interfaces** | each port's link, rate, packets, bytes, errors, drops; disabled ports are greyed, virtual and physical ports listed together |
 | **Sessions** | the IPv4 / IPv6 session tables: totals, live count, NetFlow records, protocol and port distribution |
 | **Services** | services recognised by port. Click a row for the hosts behind it (top 100 by traffic), public and private apart |
-| **Countries** | packets, bytes and share per country |
+| **Countries** | packets, bytes, flows and share per country. By default each flow counts under the country of both its ends; give the ports a side (Settings › Interfaces) or list the local networks (Settings › Packet handling › Flow tracking) and it counts the remote end alone, inbound and outbound apart, with "local to local", "country unknown" and "side not known" listed beside |
 | **L2GRE mapping** | only with L2GRE mapping enabled |
 | **MEC mapping table** | only with S1AP/NGAP correlation enabled: each UE's address, base station, cell, uplink and downlink tunnels and traffic; sortable by column, filterable by address or idle time |
 
@@ -290,7 +290,7 @@ The settings page has several sections (switched at the top); models differ a li
 | Section | Content |
 |---|---|
 | **System** | management IP, NTP server, timezone, DNS, power (reboot / halt) |
-| **Interfaces** | each port's enable, speed, description, VPORT, LAN-bypass relays |
+| **Interfaces** | each port's enable, speed, description, side (WAN / LAN, which the country statistics go by; a change reloads the engine configuration), VPORT, LAN-bypass relays |
 | **Switch interfaces** | only on models with a Marvell switch in front (the Q16). See the warning below |
 | **Packet processing** | session tracking, deduplication, fragments and reassembly, live filter updates, tunnel inspection, heartbeat, MEC (S1AP/NGAP · GTP), SD-WAN tunnels, traffic classification |
 | **Login authentication** | local accounts and levels, change my password, RADIUS / TACACS+, Allow Local Login Hosts |

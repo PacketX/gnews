@@ -160,7 +160,7 @@ for port in g.get_json("/grism/task/get_statistics_json")["statistics"]:
 | `/grism/task/get_statistics_json` | GET | 檢視 ※ | — | `statistics`(每埠:連線狀態、速率、封包與位元組數、各種丟棄與錯誤)、`sessions`、`sessionsv6`、`filter`、`packet_type_counter` |
 | `/grism/task/get_lite_statistics_json` | GET | 檢視 ※ | — | 只有每埠統計,較輕量,適合高頻輪詢 |
 | `/grism/task/get_filter_counter` | GET | 檢視 | — | 每個篩選器的 `try_count`、`matched_count`、`matched_per_second` |
-| `/grism/task/get_country_counter` | GET | 檢視 | — | 依國家的流量計數 |
+| `/grism/task/get_country_counter` | GET | 檢視 | — | 依國家的流量計數。`country_counter[]` 每筆一直都有 `iso_code`、`packets`、`bytes`(該國出現過的每條連線雙向合計);引擎 2.11.44 / 2.9.47 起另有 `flows`、`in_packets`/`in_bytes`/`out_packets`/`out_bytes`(in = 遠端送往本地)、`in_flows`/`out_flows`(遠端 / 本地發起),頂層多了 `mode`(`both`:兩端各計一次,預設;`remote`:只計遠端那一端,任一埠設了 `side` 或 `args.countryLocalNetworks` 有值時)與 `local`、`unknown`、`undirected` 三個 `{packets, bytes, flows}`。舊欄位意義不變,舊程式照讀 |
 | `/grism/task/get_flow_service` | GET | 檢視 | — | 依服務分組的流量 |
 | `/grism/task/get_flow_table` | GET | 檢視 | — | 流量表內容 |
 | `/grism/task/clear_counters` | GET | 操作 | — | 清除所有計數器 |
@@ -302,6 +302,8 @@ g.post_form("/grism/task/submit_config",
 ```
 
 多數項目立即生效;會改變記憶體配置的項目(例如各種表的大小)要重開機才會正確生效,請把 `reboot` 設成 `yes` 或隨後呼叫 `reboot`。
+
+埠的屬性走 `<interfaces><ports><find name="P0">…</find></ports></interfaces>`,可改 `description`、`enable`,以及(引擎 2.11.44 / 2.9.47 起)`side`:`wan`、`lan` 或空白,是國別統計判斷連線內外的依據,改了會重新載入引擎設定。本地網段是 `<args><countryLocalNetworks>10.0.0.0/8, 203.0.113.0/24</countryLocalNetworks></args>`,空元素表示清除。
 
 ### 用權杖改設定:先驗證、推演,再確認式提交
 
