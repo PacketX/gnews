@@ -12,6 +12,7 @@
   - [regex 篩選器對 PCRE 語法的支援](tech-regex-pcre.md)
   - [Web API:可用的呼叫與使用方式](tech-web-api.md)
   - [讓自動化與 AI 管理 GRISM](tech-agent.md)
+  - [國家統計的規則:哪一端的國家算](tech-country.md)
 - 效能測試
   - 大量過濾筆數上限
     - [G8S](perf-list-limits.md)

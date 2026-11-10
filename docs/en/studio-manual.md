@@ -253,7 +253,7 @@ Needs a session. Every tab has an auto-refresh interval (10 s by default).
 | **Interfaces** | each port's link, rate, packets, bytes, errors, drops; disabled ports are greyed, virtual and physical ports listed together |
 | **Sessions** | the IPv4 / IPv6 session tables: totals, live count, NetFlow records, protocol and port distribution |
 | **Services** | services recognised by port. Click a row for the hosts behind it (top 100 by traffic), public and private apart |
-| **Countries** | packets, bytes, flows and share per country. By default each flow counts under the country of both its ends; give the ports a side (Settings › Interfaces) or list the local networks (Settings › Packet handling › Flow tracking) and it counts the remote end alone, inbound and outbound apart, with "local to local", "country unknown" and "side not known" listed beside |
+| **Countries** | packets, bytes, flows and share per country. By default each flow counts under the country of both its ends; give the ports a side (Settings › Interfaces) or list the local networks (Settings › Packet handling › Flow tracking) and it counts the remote end alone, inbound and outbound apart, with "local to local", "country unknown" and "side not known" listed beside. The rules are in [Traffic by country](/en/tech-country.md) |
 | **L2GRE mapping** | only with L2GRE mapping enabled |
 | **MEC mapping table** | only with S1AP/NGAP correlation enabled: each UE's address, base station, cell, uplink and downlink tunnels and traffic; sortable by column, filterable by address or idle time |
 

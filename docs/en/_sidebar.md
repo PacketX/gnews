@@ -12,6 +12,7 @@
   - [PCRE syntax support of the regex filter](/en/tech-regex-pcre.md)
   - [The web API: the calls and how to use them](/en/tech-web-api.md)
   - [Letting automations and AI run GRISM](/en/tech-agent.md)
+  - [Traffic by country: which end of a flow counts](/en/tech-country.md)
 - Performance tests
   - Big filter list limits
     - [G8S](/en/perf-list-limits.md)
