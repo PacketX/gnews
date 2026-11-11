@@ -2,6 +2,23 @@
 
 The arm64 models: Q16, F3T1G4, T4G12, H2. The MIPS models' notes are [here](/en/release-mips.md).
 
+## GRISM-7.6.261111.1
+\- function added \-
+- traffic by country can count the remote end alone: give the ports a WAN/LAN side (Settings → Interfaces) or list the local networks (Settings → Packet handling → Flow tracking) and each flow counts once, under the country of its remote end, with inbound / outbound and flow counts; with nothing set it counts both ends as before
+- the country statistics can be cleared on their own, leaving the other counters alone
+- a factory reset can keep the management interfaces' addresses (Settings → Backup & restore, on by default)
+- the settings page explains what each of the four account levels may do
+
+\- bug fixed \-
+- fix a configuration parse failure being logged at every boot after a factory reset
+- fix one failed query of the packet engine being logged at boot
+- improve the memory check for very large IPv6 / CIDR lists: one that would not fit is refused and the list in use kept, instead of affecting the system
+
+\- item changed \-
+- the raw configuration XML lists each port's WAN/LAN side and the local networks
+- system account and SSH component permissions tightened, against a known Linux kernel weakness
+
+
 ## GRISM-7.6.261104.2
 \- function added \-
 - live loading of big filter lists is on by default (Settings → Packet handling → Live filter updates), and IPv4 CIDR and IPv6 lists load live too instead of through a full reload; a filter taken out of a list file is removed with the file's next load

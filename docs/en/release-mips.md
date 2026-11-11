@@ -2,6 +2,22 @@
 
 The MIPS models: G8S, G8, T12S, T20, F2T12, F4T4 and their MEC variants. The DPDK models' notes are [here](/en/release-dpdk.md).
 
+## GRISM-6.6.261111.1
+\- function added \-
+- traffic by country can count the remote end alone: give the ports a WAN/LAN side (Settings → Interfaces) or list the local networks (Settings → Packet handling → Flow tracking) and each flow counts once, under the country of its remote end, with inbound / outbound and flow counts; with nothing set it counts both ends as before
+- the country statistics can be cleared on their own, leaving the other counters alone
+- a factory reset can keep the management interfaces' addresses (Settings → Backup & restore, on by default)
+- the settings page explains what each of the four account levels may do
+
+\- bug fixed \-
+- fix ports going missing or swapped after a factory reset of a T12S with a 1G port group
+- fix a configuration parse failure being logged at every boot after a factory reset
+- fix one failed query of the packet engine being logged at boot
+
+\- item changed \-
+- the raw configuration XML lists each port's WAN/LAN side and the local networks
+
+
 ## GRISM-6.6.261104.3
 \- function added \-
 - live loading of big filter lists is on by default (Settings → Packet handling → Live filter updates), and IPv4 CIDR and IPv6 lists load live too instead of through a full reload; a filter taken out of a list file is removed with the file's next load
