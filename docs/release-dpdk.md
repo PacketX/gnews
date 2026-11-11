@@ -1,6 +1,6 @@
-# GRISM DPDK 系列(7.x)版本資訊
+# GRISM ARM64 系列(7.x)版本資訊
 
-arm64 機型:Q16、F3T1G4、T4G12、H2。MIPS 機型的版本資訊在[這裡](release-mips.md)。
+ARM64 機型:Q16、F3T1G4、T4G12、H2。MIPS64 機型的版本資訊在[這裡](release-mips.md)。
 
 ## GRISM-7.6.261111.1
 \- 新增功能 \-

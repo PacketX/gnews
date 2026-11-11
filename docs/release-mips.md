@@ -1,6 +1,6 @@
-# GRISM MIPS 系列(6.x)版本資訊
+# GRISM MIPS64 系列(6.x)版本資訊
 
-MIPS 機型:G8S、G8、T12S、T20、F2T12、F4T4 及其 MEC 機型。DPDK 機型的版本資訊在[這裡](release-dpdk.md)。
+MIPS64 機型:G8S、G8、T12S、T20、F2T12、F4T4 及其 MEC 機型。ARM64 機型的版本資訊在[這裡](release-dpdk.md)。
 
 ## GRISM-6.6.261111.1
 \- 新增功能 \-

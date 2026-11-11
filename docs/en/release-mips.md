@@ -1,6 +1,6 @@
-# GRISM MIPS line (6.x) release notes
+# GRISM MIPS64 line (6.x) release notes
 
-The MIPS models: G8S, G8, T12S, T20, F2T12, F4T4 and their MEC variants. The DPDK models' notes are [here](/en/release-dpdk.md).
+The MIPS64 models: G8S, G8, T12S, T20, F2T12, F4T4 and their MEC variants. The ARM64 models' notes are [here](/en/release-dpdk.md).
 
 ## GRISM-6.6.261111.1
 \- function added \-

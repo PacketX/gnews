@@ -1,6 +1,6 @@
-# GRISM DPDK line (7.x) release notes
+# GRISM ARM64 line (7.x) release notes
 
-The arm64 models: Q16, F3T1G4, T4G12, H2. The MIPS models' notes are [here](/en/release-mips.md).
+The ARM64 models: Q16, F3T1G4, T4G12, H2. The MIPS64 models' notes are [here](/en/release-mips.md).
 
 ## GRISM-7.6.261111.1
 \- function added \-
