@@ -141,7 +141,7 @@ The ARM64 models: Q16, F3T1G4, T4G12, H2. The MIPS64 models' notes are [here](/e
 
 ## GRISM-7.6.261001.2
 \- bug fixed \-
-- fix the firmware update overlay reporting "complete" about a second after it was submitted, skipping the rebooting and back-online phases; most visible on the MIPS line
+- fix the firmware update overlay reporting "complete" about a second after it was submitted, skipping the rebooting and back-online phases; most visible on the MIPS64 line
 - fix grism_watcher sometimes not restarting after an online update. That service is what applies firmware updates, so losing it meant every later update silently did nothing, with no error shown; only a reboot recovered it. The restart is now verified and retried, and a failure is written to the log
 - fix core dumps being pruned only when the web UI listed them; they are pruned at startup as well now
 - fix the overview's chain diagram stacking its output ports on top of each other

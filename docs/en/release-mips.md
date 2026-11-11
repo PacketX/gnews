@@ -135,7 +135,7 @@ The MIPS64 models: G8S, G8, T12S, T20, F2T12, F4T4 and their MEC variants. The A
 
 ## GRISM-6.6.261001.2
 \- bug fixed \-
-- fix the firmware update overlay reporting "complete" about a second after it was submitted, skipping the rebooting and back-online phases; most visible on the MIPS line
+- fix the firmware update overlay reporting "complete" about a second after it was submitted, skipping the rebooting and back-online phases; most visible on the MIPS64 line
 - fix core dumps being pruned only when the web UI listed them; they are pruned at startup as well now
 - fix the overview's chain diagram stacking its output ports on top of each other
 - fix a long ingress port list overflowing its node on the chain canvas

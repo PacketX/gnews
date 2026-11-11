@@ -1,6 +1,6 @@
 # How many entries a Q16 takes in a big filter list
 
-How many `ip.addr` (single addresses or CIDR), `ipv6.addr` or `dns.qry.name` entries can one filter hold on a Q16? This page is what a Q16 (the DPDK line) was measured to take on firmware 7.6.261104 with the shipped settings. The G8S is [here](/en/perf-list-limits.md) and the T12S [here](/en/perf-list-limits-t12s.md); each of the three runs into a different wall.
+How many `ip.addr` (single addresses or CIDR), `ipv6.addr` or `dns.qry.name` entries can one filter hold on a Q16? This page is what a Q16 (the ARM64 line) was measured to take on firmware 7.6.261104 with the shipped settings. The G8S is [here](/en/perf-list-limits.md) and the T12S [here](/en/perf-list-limits-t12s.md); each of the three runs into a different wall.
 
 ## Where the memory is
 

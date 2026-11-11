@@ -1,6 +1,6 @@
 # Q16 大量過濾條件的筆數上限
 
-一個 filter 裡放大量的 `ip.addr`(單一位址或 CIDR)、`ipv6.addr`、`dns.qry.name`,Q16 能放幾筆?本頁是在一台 Q16(DPDK 系列)上,以 7.6.261104 版韌體、出廠設定實測的結果。G8S 的結果在[這裡](perf-list-limits.md),T12S 的在[這裡](perf-list-limits-t12s.md);三台的瓶頸各不相同。
+一個 filter 裡放大量的 `ip.addr`(單一位址或 CIDR)、`ipv6.addr`、`dns.qry.name`,Q16 能放幾筆?本頁是在一台 Q16(ARM64 系列)上,以 7.6.261104 版韌體、出廠設定實測的結果。G8S 的結果在[這裡](perf-list-limits.md),T12S 的在[這裡](perf-list-limits-t12s.md);三台的瓶頸各不相同。
 
 ## 這台機器的記憶體怎麼分
 
