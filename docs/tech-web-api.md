@@ -278,8 +278,8 @@ for port in g.get_json("/grism/task/get_statistics_json")["statistics"]:
 
 | 端點 | 方法 | 等級 | 參數 | 說明 |
 |---|---|---|---|---|
-| `/grism/task/get_switch_interface` | GET | 檢視 | — | 各埠:啟用、連線、速率、FEC、光模組資訊 |
-| `/grism/task/set_switch_interface` | POST | 設定 | JSON:各埠設定 | 逐埠修改一般設定檔 |
+| `/grism/task/get_switch_interface` | GET | 檢視 | — | 各埠:啟用、連線、速率、FEC(`fec` 設定值、`fec_oper` 實際值)、`state`(交換器的埠狀態,`Reset` 表示沒有建立)、`fec_support`(這個速率可用的 FEC)與 `fec_support_by_speed`、光模組資訊 |
+| `/grism/task/set_switch_interface` | POST | 設定 | JSON:各埠設定 | 逐埠修改一般設定檔;速率跑不了的 FEC(例如 100G 配 FC)回 400,不寫入、不重啟交換器 |
 | `/grism/task/get_switch_interface_custom` | GET | 檢視 | — | 純文字:自訂設定檔 |
 | `/grism/task/submit_switch_interface_custom` | POST | 設定 | 請求本文即設定檔內容 | 寫入自訂設定檔 |
 | `/grism/task/get_cpss_config_list` | GET | 檢視 | — | 可用的設定檔與目前使用的是哪一個 |

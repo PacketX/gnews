@@ -278,8 +278,8 @@ An event is `{id, ts, kind, text, data}`, POSTed as JSON to each webhook with `X
 
 | Call | Method | Level | Parameters | What it does |
 |---|---|---|---|---|
-| `/grism/task/get_switch_interface` | GET | view | — | each port: enabled, link, speed, FEC, transceiver details |
-| `/grism/task/set_switch_interface` | POST | config | JSON: the ports' settings | edit the normal configuration port by port |
+| `/grism/task/get_switch_interface` | GET | view | — | each port: enabled, link, speed, FEC (`fec` as set, `fec_oper` as run), `state` (the switch's port state; `Reset` = not built), `fec_support` (the FEC this speed can run) and `fec_support_by_speed`, transceiver details |
+| `/grism/task/set_switch_interface` | POST | config | JSON: the ports' settings | edit the normal configuration port by port; a FEC the speed cannot run (FC at 100G, say) answers 400, nothing written, the switch not restarted |
 | `/grism/task/get_switch_interface_custom` | GET | view | — | text: the custom configuration |
 | `/grism/task/submit_switch_interface_custom` | POST | config | the body is the configuration | write the custom configuration |
 | `/grism/task/get_cpss_config_list` | GET | view | — | the configurations there are, and which is in use |
