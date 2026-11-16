@@ -216,13 +216,13 @@ for port in g.get_json("/grism/task/get_statistics_json")["statistics"]:
 | `/grism/task/get_api_tokens` | GET | 管理 | — | 權杖清單(名稱、等級、來源、到期、最近使用;不含權杖本身) |
 | `/grism/task/create_api_token` | POST JSON | 管理 | `name`、`priv`(1/5/10)、`expires_days`(0 = 永不)、`hosts`(IPv4 或網段清單) | 建立權杖;回應的 `token` 只出現這一次 |
 | `/grism/task/delete_api_token` | POST JSON | 管理 | `name` | 刪除權杖,立即失效 |
-| `/grism/task/validate` | POST | 操作 | `data`(`<run>` XML) | 只檢查不套用:XML、id 重複、篩選器/輸出/埠的參照、`<find>` 名稱是否在此韌體的欄位目錄裡;回 `valid`、`problems`、`warnings`、`summary` |
+| `/grism/task/validate` | POST | 操作 | `data`(`<run>` XML) | 只檢查不套用:XML、id 重複、篩選器/輸出/埠的參照、`<find>` 名稱是否在此韌體的欄位目錄裡、佔用核心的輸入數(每個 `replayPcap` / `traffic-gen` 輸入各用一個核心,寫入儲存的輸出再一個;核心數減二是上限,超過的輸入引擎不會啟動);回 `valid`、`problems`、`warnings`、`summary` |
 | `/grism/task/trace` | GET / POST | 檢視 | `in`(入口埠,必填)、`src`、`dst`、`proto`(tcp/udp/sctp/icmp/arp 或數字)、`sport`、`dport`、`vlan`、`smac`、`dmac`、`tunnel`(none/gre/vxlan/gtp)、`icmptype`、`live=1`;POST 另可給 `data` 推演一份候選設定 | 從執行中的設定推演封包會走哪條路:能由參數判定的篩選器直接判定,判定不了的分成兩條路徑各自記下假設;`live=1` 附上各篩選器目前的命中數 |
 | `/grism/task/submitxml` | POST | 操作 | 原有參數加 `confirm`(10–3600 秒) | 確認式提交:裝置保留目前執行中的檔案,時限內沒有 `confirm_submit` 就自動換回去;回 `{pending, deadline, remaining}` |
 | `/grism/task/get_pending_submit` | GET | 檢視 | — | 是否有提交在等確認、剩餘秒數、誰提交的 |
 | `/grism/task/confirm_submit` | POST | 操作 | — | 確認保留這次提交 |
 | `/grism/task/rollback_submit` | POST | 操作 | — | 立即換回前一版 |
-| `/grism/task/get_capabilities` | GET | 檢視 | — | 這台裝置是什麼、能做什麼:機型、韌體與引擎版本、產品線、各埠(含 LOOP)、管理位址、儲存空間、可用的篩選欄位、各表大小與功能開關、記憶體、bypass 配對、以及自動化呼叫的對照表 |
+| `/grism/task/get_capabilities` | GET | 檢視 | — | 這台裝置是什麼、能做什麼:機型、韌體與引擎版本、產品線、各埠(含 LOOP)、管理位址、儲存空間、可用的篩選欄位、各表大小與功能開關、記憶體、bypass 配對、核心數與可佔用核心的輸入上限(`cores`)、以及自動化呼叫的對照表 |
 | `/grism/task/get_events` | GET | 檢視 | `since`(事件 id)、`kinds`(alert,config,engine,auth)、`limit` | 最近 500 筆事件;`since` 之後的,搭配回應的 `last_id` 輪詢 |
 | `/grism/task/get_webhooks` | GET | 設定 | — | Webhook 目標清單(密鑰以 `********` 代替) |
 | `/grism/task/set_webhooks` | POST JSON | 設定 | `webhooks`:`[{name, url, secret, events, enable}]`,最多 8 個 | 整份清單一次寫入;`secret` 送 `********` 表示保留原值;`events` 留空 = 全部種類 |
