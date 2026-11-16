@@ -157,7 +157,7 @@ for port in g.get_json("/grism/task/get_statistics_json")["statistics"]:
 
 | 端點 | 方法 | 等級 | 參數 | 說明 |
 |---|---|---|---|---|
-| `/grism/task/get_statistics_json` | GET | 檢視 ※ | — | `statistics`(每埠:連線狀態、速率、封包與位元組數、各種丟棄與錯誤)、`sessions`、`sessionsv6`、`filter`、`packet_type_counter` |
+| `/grism/task/get_statistics_json` | GET | 檢視 ※ | — | `statistics`(每埠:連線狀態、速率、封包與位元組數、各種丟棄與錯誤,arm64 機型另有 `inQueueFull`:封包核心發現接收佇列超過四分之三滿的次數)、`sessions`、`sessionsv6`、`filter`、`packet_type_counter` |
 | `/grism/task/get_lite_statistics_json` | GET | 檢視 ※ | — | 只有每埠統計,較輕量,適合高頻輪詢 |
 | `/grism/task/get_filter_counter` | GET | 檢視 | — | 每個篩選器的 `try_count`、`matched_count`、`matched_per_second` |
 | `/grism/task/get_country_counter` | GET | 檢視 | — | 依國家的流量計數。`country_counter[]` 每筆一直都有 `iso_code`、`packets`、`bytes`(該國出現過的每條連線雙向合計);引擎 2.11.44 / 2.9.47 起另有 `flows`、`in_packets`/`in_bytes`/`out_packets`/`out_bytes`(in = 遠端送往本地)、`in_flows`/`out_flows`(遠端 / 本地發起),頂層多了 `mode`(`both`:兩端各計一次,預設;`remote`:只計遠端那一端,任一埠設了 `side` 或 `args.countryLocalNetworks` 有值時)與 `local`、`unknown`、`undirected` 三個 `{packets, bytes, flows}`。舊欄位意義不變,舊程式照讀 |

@@ -317,7 +317,7 @@ Switches on the three features MEC breakout needs together (S1AP/NGAP correlatio
 
 ![Settings: alerts](img/manual/set-alerts.png)
 
-The device checks every 10 seconds whether or not anyone has the page open. Rules: CPU (packet engine excluded), memory, disks, temperature, fan failure, packet-engine zombie processes, a service not running, input drops, MEC table fill; each has a threshold, a clear threshold and a hold time. Raising and clearing are written to the system log and sent as SNMPv2c traps to the "SNMP trap targets" (several allowed; "send a test trap" checks the receiver at once); syslog goes out through "Logging". The boot, shutdown and power notifications come from the `packetx_trap_dispatcher` service, enabled under Services.
+The device checks every 10 seconds whether or not anyone has the page open. Rules: CPU (packet engine excluded), memory, disks, temperature, fan failure, packet-engine zombie processes, a service not running, input drops, MEC table fill, a filter list not applied, receive queue full (a packet core found a port's receive queue over three quarters full: the core is behind, and the NIC drops frames it does not count; arm64 models, `inQueueFull` in `get_statistics_json`); each has a threshold, a clear threshold and a hold time. Raising and clearing are written to the system log and sent as SNMPv2c traps to the "SNMP trap targets" (several allowed; "send a test trap" checks the receiver at once); syslog goes out through "Logging". The boot, shutdown and power notifications come from the `packetx_trap_dispatcher` service, enabled under Services.
 
 **Services**
 

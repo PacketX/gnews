@@ -157,7 +157,7 @@ A GET with nothing in its "Parameters" column takes none. "MIPS only" is the 6.6
 
 | Call | Method | Level | Parameters | What it does |
 |---|---|---|---|---|
-| `/grism/task/get_statistics_json` | GET | view ※ | — | `statistics` (per port: link, rates, packet and byte counts, every kind of drop and error), `sessions`, `sessionsv6`, `filter`, `packet_type_counter` |
+| `/grism/task/get_statistics_json` | GET | view ※ | — | `statistics` (per port: link, rates, packet and byte counts, every kind of drop and error; on arm64 models also `inQueueFull`, the times a packet core found the receive queue over three quarters full), `sessions`, `sessionsv6`, `filter`, `packet_type_counter` |
 | `/grism/task/get_lite_statistics_json` | GET | view ※ | — | the per-port part alone: lighter, the one to poll often |
 | `/grism/task/get_filter_counter` | GET | view | — | `try_count`, `matched_count` and `matched_per_second` of each filter |
 | `/grism/task/get_country_counter` | GET | view | — | traffic by country. Each entry of `country_counter[]` has always had `iso_code`, `packets`, `bytes` (both directions of every flow the country was in); engines 2.11.44 / 2.9.47 add `flows`, `in_packets`/`in_bytes`/`out_packets`/`out_bytes` (in = from the remote end to the local one), `in_flows`/`out_flows` (opened by the remote / the local end), and at the top level `mode` (`both`: each end's country, the default; `remote`: the remote end's alone, once any port has a `side` or `args.countryLocalNetworks` is set) with `local`, `unknown` and `undirected`, each `{packets, bytes, flows}`. The old fields keep their meaning, so an older reader is not affected |
