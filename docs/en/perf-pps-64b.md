@@ -52,8 +52,6 @@ How many of the smallest frames can a box forward a second **without losing one*
 | **Q16, one 100G port** (HL1 generating) | flow on (6.29M flows, 6 generators) | in V13, out V5 | **15.29** | 15.42 | 18.4 (33.7) | 98% |
 | Q16, one 100G port (HL1 generating) | flow on (4.19M flows, 4 generators) | in V13, out V5 | **18.44** | 18.6 | 19.1 (23.4) | 100% |
 | Q16, one 100G port (HL1 generating) | flow off, 6 generators | in V13, out V5 | **23.65** | 23.73 | 33.6 (33.7) | 95% |
-| Q16, one 100G port (HL1 generating, engine 2.9.52 or later) | flow on (6.35M flows, 4 generators) | in V13, out V13 (the return into the HL1's P0) | — (one unpaced trial only) | — | 18.6 (24.1) | 100% |
-| Q16, one 100G port (HL1 generating, engine 2.9.52 or later) | flow on (6.35M flows, 6 generators) | in V13, out V13 (the return into the HL1's P0) | — (one unpaced trial only) | — | 17.9 (35.0) | 100% |
 | HL1 | flow on (1.93M flows) | 1 in 1 out, 1 generator | **≥ 4.18** | — | — | 72% (busiest core 99%) |
 | HL1 | flow on (1.93M flows) | 1 in 1 out, 2 generators | **6.01** | 6.09 | 6.62 (9.04) | 96% |
 | HL1 | flow on (1.93M flows) | 1 in 1 out, 4 generators | **6.02** | 6.07 | 6.57 (17.5) | 92% |
