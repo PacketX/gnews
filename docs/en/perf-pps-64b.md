@@ -29,10 +29,10 @@ How many of the smallest frames can a box forward a second **without losing one*
 | G8S | flow off | 1 in 1 out | **0.92** | 0.93 | 1.06 (1.49) | 100% |
 | T12S | flow on (1.8M flows) | 4 in 4 out | **3.07** (total) | 3.10 | 3.22 (18.1) | 100% |
 | T12S | flow off | 4 in 4 out | **6.27** (total) | 6.33 | 6.34 (17.6) | 97% |
-| Q16 | flow on (6.35M flows) | 4 in 4 out, 3 generators a port | **16.1** (total) | 16.3 | 17.7 (37.1) | 100% |
-| Q16 | flow off | 4 in 4 out, 3 generators a port | **27.1** (total) | 27.2 (one frame lost in 60 s) | 34.5 (37.0) | 100% |
 | HL1 | flow on (1.93M flows) | 1 in 1 out, 4 generators | **6.02** | 6.07 | 6.57 (17.5) | 92% |
 | HL1 | flow off | 1 in 1 out, 4 generators | **11.38** | 11.46 | 11.86 (17.8) | 92% (every work core at 100%) |
+| Q16 | flow on (6.35M flows) | 4 in 4 out, 3 generators a port | **16.1** (total) | 16.3 | 17.7 (37.1) | 100% |
+| Q16 | flow off | 4 in 4 out, 3 generators a port | **27.1** (total) | 27.2 (one frame lost in 60 s) | 34.5 (37.0) | 100% |
 
 - 64-byte line rate is 1.488 Mpps on a 1G port, 14.88 Mpps on a 10G port and 148.8 Mpps on a 100G port.
 - **G8S**: about 0.4 Mpps with the flow table on, a limit of the whole engine rather than of a port -- 2 in 2 out totals slightly less (one more port to serve); about twice that with the flow tables, L7 parsing and the rest off. Flooded at line rate it still forwards about 0.5 / 1.06 Mpps, the rest is dropped at the in port and the out port never drops.
