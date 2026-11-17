@@ -242,9 +242,9 @@ With it on, packets show on screen while the capture runs — list, decoded deta
 
 ### 3.7 Modules
 
-Settings has a **Modules** section, and the modules (MEC so far) are listed there from the start; nothing is added. A module is a feature described by a few fields: fill in the basic fields, press **Apply**, confirm, and the device writes the filters, outputs and chains itself and puts them in force -- **Apply replaces the device's whole packet-processing configuration (run.xml) with the module's**; what it replaced is kept as a pre-submit snapshot on the Export tab, to load back at any time. **Cancel** on the card discards edits not yet applied; **Release** (after a confirm too) removes the module's configuration from the device.
+Settings has a **Modules** section, and the modules (MEC so far) are listed there from the start; nothing is added. A module is a feature described by a few fields, but none of them is filled in here: the card has two buttons. **Apply** (after a confirm) puts the module on the device, and from then on the pipeline page shows that module and the capture only; what the device forwards does not change until the fields are filled in and applied under the pipeline. **Release** (after a confirm too) takes the module off the device.
 
-With a MEC module applied, the **Pipeline** has two tabs left: **MEC** (the instance's full settings) and **Capture**; chains, filters, simulate and export are put away, because the module owns the configuration. The detailed settings are changed under **Pipeline → MEC**: the cell / UE / SPID rules (top to bottom, first match wins; break out to the edge, drop, or send to the core), SCTP reassembly, nrCellIdentityBits -- Apply (after a confirm) puts them in force; the **Raw XML** button shows the device's running run.xml, which is the configuration the module made. Releasing the module is done under Settings → Modules; the pipeline then returns to the ordinary editor (with an empty configuration: load the original back from the snapshot).
+With a MEC module applied, the **Pipeline** has two tabs left: **MEC** and **Capture**; chains, filters, simulate and export are put away, because the module owns the configuration. Every field of the module is set under **Pipeline → MEC**: the basic ports, UE addresses, breakout scope and edge gateway, and the advanced cell / UE / SPID rules (top to bottom, first match wins; break out to the edge, drop, or send to the core), other edges by UE range, SCTP reassembly, nrCellIdentityBits. **Apply** (after a confirm) has the device write the filters, outputs and chains itself and put them in force -- **the first apply with the fields filled in replaces the device's whole packet-processing configuration (run.xml) with the module's**; what it replaced is kept as a pre-submit snapshot on the Export tab, to load back at any time; later applies rewrite the module's own part only. The **Raw XML** button shows the device's running run.xml, which is the configuration the module made. Releasing the module is done under Settings → Modules; the pipeline then returns to the ordinary editor (with an empty configuration where the module had replaced it: load the original back from the snapshot).
 
 The modules so far:
 
@@ -394,7 +394,8 @@ Above the list is a `MANIFEST.txt` link recording which firmware the dumps belon
 
 ### Set up MEC breakout
 
-1. Settings → **Modules** → the "MEC breakout" card: the RAN-side, core-side and edge ports, the UE addresses and the edge gateway → Apply → confirm (replaces the packet-processing configuration and switches on the settings MEC needs)
+1. Settings → **Modules** → the "MEC breakout" card → Apply → confirm (the module is put on the device; the pipeline page becomes MEC and Capture)
+1. Pipeline → **MEC**: the RAN-side, core-side and edge ports, the UE addresses and the edge gateway → Apply → confirm (replaces the packet-processing configuration and switches on the settings MEC needs)
 2. Traffic → **MEC mapping table**: confirm the UEs are learned and their cell values
 3. To break out by cell, Pipeline → **MEC** → the rules table: the cell values (and UE, SPID, destinations) → Apply
 

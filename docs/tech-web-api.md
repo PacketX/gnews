@@ -230,7 +230,7 @@ for port in g.get_json("/grism/task/get_statistics_json")["statistics"]:
 | `/grism/task/get_modules` | GET | 檢視 | — | 模組目錄:每個模組的名稱、說明與表單定義(`schema`,欄位型別 port / ip / cidr_list / text / int / bool / enum / table),以及模組佔用的 id 範圍(`ids`:8000 起,每個實例 100 個) |
 | `/grism/task/get_module_instances` | GET | 檢視 | — | run.xml 裡的模組實例:`type`、`id`、參數、摘要、它寫進去的 filter / output id 與鏈結數、問題 |
 | `/grism/task/preview_module` | POST JSON | 操作 | `type`、`id`(更新既有實例時)、`params` | 不寫入:回產生的片段 `xml`、完整候選 `run_xml` 與其 `validate` 結果、會改的系統設定 `args`、同埠衝突等 `warnings` |
-| `/grism/task/apply_module` | POST JSON | 操作;要改系統設定時為設定 | 同上,另可帶 `mode`(`replace` 預設:run.xml 只剩模組實例,手寫的設定存成提交前快照;`merge`:加進既有設定旁)與 `confirm`(秒) | 把實例寫進 run.xml(新增或取代同 id 的),再送它需要的設定(configSet);回 `{applied, id, mode, replaced_config, snapshot, args, warnings, pending}` |
+| `/grism/task/apply_module` | POST JSON | 操作;要改系統設定時為設定 | 同上,另可帶 `mode`(`replace` 預設:run.xml 只剩模組實例,手寫的設定存成提交前快照;`merge`:加進既有設定旁)與 `confirm`(秒) | 把實例寫進 run.xml(新增或取代同 id 的),再送它需要的設定(configSet);回 `{applied, id, mode, replaced_config, snapshot, args, warnings, pending}`。`params` 全空(`{}`)是「放上但尚未設定」的實例:只在 run.xml 留一個沒有鏈結用到的佔位篩選器、一律 `merge`、不改系統設定,`get_module_instances` 回它 `configured: false`(另有頂層 `handwritten`:run.xml 是否還有模組以外的設定);之後以同 id 帶完整參數套用才取代設定 |
 | `/grism/task/remove_module` | POST JSON | 操作 | `type`、`id` | 把實例的元素從 run.xml 拿掉;它開啟過的系統設定不動 |
 
 事件的格式:`{id, ts, kind, text, data}`,以 JSON POST 到 webhook,標頭 `X-Grism-Event: <kind>`;設有密鑰時 `X-Grism-Signature: sha256=<HMAC-SHA256(密鑰, 內容)>`。種類:`alert`(告警觸發與解除)、`config`(submit、submit_instant、configSet、確認、還原)、`engine`(封包引擎的行程改變 = 重啟或當機)、`auth`(權杖建立與刪除、登入失敗)。
