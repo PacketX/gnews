@@ -242,7 +242,7 @@ With it on, packets show on screen while the capture runs — list, decoded deta
 
 ### 3.7 Modules
 
-The toolbar has its own **Modules** button. A module is a feature described by a few fields: fill them in, press **Preview** to see what the device would write, press **Apply**, and the device writes the filters, outputs and chains itself, marked as the module's -- so the instance can later be **edited** or **removed** as one, without hunting through the chains. What it made is still visible in the pipeline (a `grism-module` comment above each element) and can be changed there by hand, but the next apply of that instance replaces it with the module's result.
+Settings has a **Modules** section. A module is a feature described by a few fields: fill them in, press **Preview** to see what the device would write, press **Apply**, and the device writes the filters, outputs and chains itself, marked as the module's -- so the instance can later be **edited** or **removed** as one, without hunting through the chains. What it made is still visible in the pipeline (a `grism-module` comment above each element) and can be changed there by hand, but the next apply of that instance replaces it with the module's result.
 
 The modules so far:
 
@@ -392,9 +392,9 @@ Above the list is a `MANIFEST.txt` link recording which firmware the dumps belon
 
 ### Set up MEC breakout
 
-1. **Modules** → add "MEC breakout": the RAN-side, core-side and edge ports, the UE addresses and the edge gateway → Preview → Apply (the settings MEC needs are switched on with it)
+1. Settings → **Modules** → add "MEC breakout": the RAN-side, core-side and edge ports, the UE addresses and the edge gateway → Preview → Apply (the settings MEC needs are switched on with it)
 2. Traffic → **MEC mapping table**: confirm the UEs are learned and their cell values
-3. To break out by cell, back to Modules → Edit → the rules table under Advanced: the cell values (and UE, SPID, destinations) → Preview → Apply
+3. To break out by cell, back to Settings → Modules → Edit → the rules table under Advanced: the cell values (and UE, SPID, destinations) → Preview → Apply
 
 (The old way still works: switch the feature on in the Settings MEC card and take the card's template into the editor by hand.)
 
