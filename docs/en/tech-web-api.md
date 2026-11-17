@@ -227,8 +227,15 @@ Calls made for programs rather than people: tokens, validation before a submit, 
 | `/grism/task/get_webhooks` | GET | config | — | the webhook targets (secrets shown as `********`) |
 | `/grism/task/set_webhooks` | POST JSON | config | `webhooks`: `[{name, url, secret, events, enable}]`, up to 8 | the whole list at once; a `secret` of `********` keeps the stored one; an empty `events` means every kind |
 | `/grism/task/test_webhook` | POST JSON | config | `name` | sends one `test` event to that target now; answers `{ok, error}` |
+| `/grism/task/get_modules` | GET | view | — | the module catalogue: each module's name, description and form definition (`schema`; field types port / ip / cidr_list / text / int / bool / enum / table) and the id range modules use (`ids`: from 8000, 100 per instance) |
+| `/grism/task/get_module_instances` | GET | view | — | the instances in run.xml: `type`, `id`, parameters, a summary, the filter / output ids and chains it wrote, problems |
+| `/grism/task/preview_module` | POST JSON | operator | `type`, `id` (when updating an instance), `params` | writes nothing: answers the generated block `xml`, the whole candidate `run_xml` with its `validate` result, the settings it would change (`args`) and `warnings` such as another chain on the same port |
+| `/grism/task/apply_module` | POST JSON | operator; config when a setting changes | as above, plus `confirm` (seconds) | writes the instance into run.xml (new, or in place of the one with that id), then the settings it needs (a configSet); answers `{applied, id, args, warnings, pending}` |
+| `/grism/task/remove_module` | POST JSON | operator | `type`, `id` | takes the instance's elements out of run.xml; the settings it switched on stay |
 
 An event is `{id, ts, kind, text, data}`, POSTed as JSON to each webhook with `X-Grism-Event: <kind>` and, when the hook has a secret, `X-Grism-Signature: sha256=<HMAC-SHA256(secret, body)>`. Kinds: `alert` (raised and cleared), `config` (submit, submit_instant, configSet, confirm, rollback), `engine` (the packet engine's processes changed: a restart or a crash), `auth` (a token made or removed, a failed sign-in).
+
+A **module** is a feature described by a few fields: the device renders the filters, outputs and chains from the module's template (pywww `modules.py`), each element under a one-line `<!-- grism-module mec#1 ... -->` marker comment, the first one carrying the parameters as JSON -- so the same run.xml is still editable in the Studio's chain editor, carried by backup/restore and GRISM Manager, and the instance can be found again, replaced or removed as one. The first module is MEC breakout: RAN-side, core-side and edge ports, the UE addresses and the edge gateway, optionally the destinations that break out and a table of cell / UE / SPID rules (top to bottom, first match wins; break out, drop or send to the core); applying it also switches on `s1cCorrelation`, GTP in-tunnel decapsulation, `flowExtensionGtpTunnelhdr` and `s1apItemsUEport`, and `sctpDataChunkReconstruct` when a rule uses an SPID.
 
 ### Firmware, components, backup and restore
 

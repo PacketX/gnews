@@ -240,6 +240,17 @@ With it on, packets show on screen while the capture runs — list, decoded deta
 
 > 💡 The filter matches the **decoded field text**, not Wireshark's filter syntax.
 
+### 3.7 Modules
+
+The toolbar has its own **Modules** button. A module is a feature described by a few fields: fill them in, press **Preview** to see what the device would write, press **Apply**, and the device writes the filters, outputs and chains itself, marked as the module's -- so the instance can later be **edited** or **removed** as one, without hunting through the chains. What it made is still visible in the pipeline (a `grism-module` comment above each element) and can be changed there by hand, but the next apply of that instance replaces it with the module's result.
+
+The modules so far:
+
+- **MEC breakout (4G/5G)**: RAN-side port, core-side port, edge port, UE addresses, edge gateway; optionally the destinations that break out and what happens to UE traffic no rule matches. Under Advanced, a table of **cell / UE / SPID rules** (top to bottom, first match wins; break out to the edge, drop, or send to the core), the cell value being the `cellid` of the MEC mapping table; a rule with an SPID switches SCTP reassembly on by itself. Applying also switches on the settings MEC needs (S1AP/NGAP correlation, GTP inner parsing, the tunnel header in the flow, the UE port) -- the preview lists them; **a settings change takes a config-level account, reloads the engine's configuration and, on the ARM64 models, restarts the engine**.
+- Further modules (SD-WAN, mirror, inline) follow; a new module needs no Studio update.
+
+> 💡 Removing an instance takes out its filters, outputs and chains only; the settings it switched on stay as they are -- Settings is where to turn them off.
+
 ---
 
 ## 4. Traffic
@@ -381,10 +392,11 @@ Above the list is a `MANIFEST.txt` link recording which firmware the dumps belon
 
 ### Set up MEC breakout
 
-1. Settings → Packet processing → the **MEC (S1AP/NGAP · GTP)** card: switch it on, apply
-2. The card's "4G/5G mobile edge computing breakout" template → in the editor, replace the ports and addresses with the real ones (base-station side, core side, edge host)
-3. Traffic → **MEC mapping table**: confirm the UEs are learned and their cell values, then put the cell condition into the filter
-4. Simulate, export, submit
+1. **Modules** → add "MEC breakout": the RAN-side, core-side and edge ports, the UE addresses and the edge gateway → Preview → Apply (the settings MEC needs are switched on with it)
+2. Traffic → **MEC mapping table**: confirm the UEs are learned and their cell values
+3. To break out by cell, back to Modules → Edit → the rules table under Advanced: the cell values (and UE, SPID, destinations) → Preview → Apply
+
+(The old way still works: switch the feature on in the Settings MEC card and take the card's template into the editor by hand.)
 
 ### After the engine crashes
 

@@ -227,8 +227,15 @@ for port in g.get_json("/grism/task/get_statistics_json")["statistics"]:
 | `/grism/task/get_webhooks` | GET | 設定 | — | Webhook 目標清單(密鑰以 `********` 代替) |
 | `/grism/task/set_webhooks` | POST JSON | 設定 | `webhooks`:`[{name, url, secret, events, enable}]`,最多 8 個 | 整份清單一次寫入;`secret` 送 `********` 表示保留原值;`events` 留空 = 全部種類 |
 | `/grism/task/test_webhook` | POST JSON | 設定 | `name` | 立即送一筆 `test` 事件到該目標,回 `{ok, error}` |
+| `/grism/task/get_modules` | GET | 檢視 | — | 模組目錄:每個模組的名稱、說明與表單定義(`schema`,欄位型別 port / ip / cidr_list / text / int / bool / enum / table),以及模組佔用的 id 範圍(`ids`:8000 起,每個實例 100 個) |
+| `/grism/task/get_module_instances` | GET | 檢視 | — | run.xml 裡的模組實例:`type`、`id`、參數、摘要、它寫進去的 filter / output id 與鏈結數、問題 |
+| `/grism/task/preview_module` | POST JSON | 操作 | `type`、`id`(更新既有實例時)、`params` | 不寫入:回產生的片段 `xml`、完整候選 `run_xml` 與其 `validate` 結果、會改的系統設定 `args`、同埠衝突等 `warnings` |
+| `/grism/task/apply_module` | POST JSON | 操作;要改系統設定時為設定 | 同上,另可帶 `confirm`(秒) | 把實例寫進 run.xml(新增或取代同 id 的),再送它需要的設定(configSet);回 `{applied, id, args, warnings, pending}` |
+| `/grism/task/remove_module` | POST JSON | 操作 | `type`、`id` | 把實例的元素從 run.xml 拿掉;它開啟過的系統設定不動 |
 
 事件的格式:`{id, ts, kind, text, data}`,以 JSON POST 到 webhook,標頭 `X-Grism-Event: <kind>`;設有密鑰時 `X-Grism-Signature: sha256=<HMAC-SHA256(密鑰, 內容)>`。種類:`alert`(告警觸發與解除)、`config`(submit、submit_instant、configSet、確認、還原)、`engine`(封包引擎的行程改變 = 重啟或當機)、`auth`(權杖建立與刪除、登入失敗)。
+
+**模組**是「用幾個欄位描述一個功能」:裝置依模組的樣板(pywww `modules.py`)產生篩選器、輸出與鏈結,每個元素前面放一行 `<!-- grism-module mec#1 ... -->` 標記註解、第一個元素的註解帶著參數 JSON,所以同一份 run.xml 既能被 Studio 的鏈結編輯器正常編輯、備份還原與 GRISM Manager 同步,又能整個實例被找回、取代或移除。第一個模組是 MEC breakout:基地台側埠、核心網側埠、邊緣側埠、UE 位址範圍、邊緣閘道,選填「只分流到哪些目的地」與 cell / UE / SPID 規則表(由上往下第一個命中生效,動作為分流、丟棄或送核心),套用時一併開啟 `s1cCorrelation`、GTP in-tunnel、`flowExtensionGtpTunnelhdr`、`s1apItemsUEport`,用到 SPID 時再開 `sctpDataChunkReconstruct`。
 
 ### 韌體、元件、備份還原
 
