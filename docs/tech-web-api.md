@@ -241,7 +241,7 @@ for port in g.get_json("/grism/task/get_statistics_json")["statistics"]:
 
 | 端點 | 方法 | 等級 | 參數 | 說明 |
 |---|---|---|---|---|
-| `/grism/task/update` | POST | 管理 | multipart `file`=`grism-bin.tgz` | 上傳韌體並開始更新;設定會沿用 |
+| `/grism/task/update` | POST | 管理 | multipart `file`=`grism-bin.tgz`(或 `grism-bin-<型號>[-<版本>].tgz`) | 上傳韌體並開始更新;設定會沿用 |
 | `/grism/task/update_check` | GET | 設定 | — | 向更新伺服器查詢有無新版 |
 | `/grism/task/update_download` | GET | 管理 | `version` | 讓設備自行下載指定版本 |
 | `/grism/task/update_download_check` | GET | 檢視 | — | 純文字 `已下載,總大小`(位元組) |
@@ -393,7 +393,8 @@ data = g.get("/grism/task/download_storage_file", name="H1", dir="out", filename
 curl -k -b cookie.txt -F file=@sample.pcap \
      "$GRISM/grism/task/upload_pcap_file?storage=H1&dir=in&name=sample.pcap"
 
-# 韌體:檔名須為 grism-bin.tgz(或 grism-bin-<機型>.tgz),機型必須與設備相符
+# 韌體:檔名為 grism-bin.tgz,或 grism-bin 後面接型號與版本(grism-bin-T12S.tgz、grism-bin-T12S-MEC-6.6.261120.1.tgz;
+# 1.50.22 / 1.48.22 之前的 pywww 只收前兩種,版號不能帶點),映像裡的型號必須與設備相符
 curl -k -b cookie.txt -F file=@grism-bin.tgz $GRISM/grism/task/update
 ```
 

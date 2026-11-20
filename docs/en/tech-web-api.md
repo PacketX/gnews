@@ -241,7 +241,7 @@ A **module** is a feature described by a few fields: the device renders the filt
 
 | Call | Method | Level | Parameters | What it does |
 |---|---|---|---|---|
-| `/grism/task/update` | POST | admin | multipart `file`=`grism-bin.tgz` | upload a firmware image and start the update; settings are carried over |
+| `/grism/task/update` | POST | admin | multipart `file`=`grism-bin.tgz` (or `grism-bin-<model>[-<version>].tgz`) | upload a firmware image and start the update; settings are carried over |
 | `/grism/task/update_check` | GET | config | — | ask the update server whether there is a newer version |
 | `/grism/task/update_download` | GET | admin | `version` | have the device fetch that version itself |
 | `/grism/task/update_download_check` | GET | view | — | text `downloaded,total` (bytes) |
@@ -393,7 +393,9 @@ A capture still being written has a name ending in `.tmp`; with `offset` (the by
 curl -k -b cookie.txt -F file=@sample.pcap \
      "$GRISM/grism/task/upload_pcap_file?storage=H1&dir=in&name=sample.pcap"
 
-# firmware: the file must be named grism-bin.tgz (or grism-bin-<model>.tgz), and be built for this model
+# firmware: the file is grism-bin.tgz, or grism-bin followed by the model and version (grism-bin-T12S.tgz,
+# grism-bin-T12S-MEC-6.6.261120.1.tgz; pywww before 1.50.22 / 1.48.22 takes only the first two forms, no dots
+# in the version), and the model inside it must be this device's
 curl -k -b cookie.txt -F file=@grism-bin.tgz $GRISM/grism/task/update
 ```
 
