@@ -2,6 +2,33 @@
 
 The ARM64 models: Q16, F3T1G4, T4G12, H2. The MIPS64 models' notes are [here](/en/release-mips.md).
 
+## GRISM-7.6.261124.6
+\- function added \-
+- a firmware update accepts an upload named with the model and version (grism-bin-T12S-MEC-6.6.261124.1.tgz), no renaming needed
+
+\- bug fixed \-
+- fix the packet engine possibly stopping when a filter query (a management interface's bypass filter, the Studio's filter counters page) coincided with a configuration submit (reload)
+- fix a capture to one storage landing on the other when two storages are enabled
+- fix NetFlow and flow syslog export stopping after a pcap replay
+- a network storage (NFS) that does not answer no longer holds the boot: two minutes of waiting, then a read-only stand-in
+- the service versions page shows the sshd and nginx actually running
+- the Q16 switch ports offer only the FEC a speed can run and show the FEC in effect and the port state; transceiver details are read from each cage's own module
+- session.packet.nth counts as it does on the MIPS models
+
+\- item changed \-
+- nginx 1.30.7, for a known weakness that could loop a worker reading a request body over TLS 1.3
+- eight-core models (HL1): Linux processes and interrupts live on CPU 0, so a packet core is no longer preempted into dropping frames; a per-port receive-queue-full counter and a "Receive queue full" alert; replay / traffic-generator inputs are capped by the core count
+- the factory-shared SSH host keys in /etc/ssh are replaced by each box's own as well
+
+\- MEC \-
+- MEC breakout module: applied under Settings → Modules, the packet-handling page gains a MEC tab where one table of rules generates the whole MEC configuration -- each row its conditions (UE address ranges, destinations, cells, SPIDs, several values each) and its action (break out to an edge / drop / to the core / UE to UE), top to bottom, first match wins, everything else to the core
+- rules may use several edge ports, a gateway by IP or MAC, an open edge without a UE range (told by SPID or cell), edge-side hosts never answered for by ARP, and UE-to-UE traffic turned straight around without the edge
+- the edge's ARP is answered only while the RAN-side port has link; the hand-written configuration an apply replaces is kept as a snapshot; the generated XML and the settings it would change can be previewed first
+- the cell and SPID fields offer the values the device has actually seen
+- a 5G UE's cell is learned from every NGAP message that carries the location (InitialUEMessage, UplinkNASTransport, UEContextModificationResponse, LocationReport, RRCInactiveTransitionReport, the location in PDUSessionResourceModify); 4G learns it from UplinkNASTransport too, so a UE attached before the device was switched on gets its cell
+- fix the cell reading 0 when the AMF has two N2 addresses and uplink and downlink take different ones: the base station is keyed by its own address (verified on live-network captures)
+
+
 ## GRISM-7.6.261111.1
 \- function added \-
 - traffic by country can count the remote end alone: give the ports a WAN/LAN side (Settings → Interfaces) or list the local networks (Settings → Packet handling → Flow tracking) and each flow counts once, under the country of its remote end, with inbound / outbound and flow counts; with nothing set it counts both ends as before

@@ -2,6 +2,26 @@
 
 MIPS64 機型:G8S、G8、T12S、T20、F2T12、F4T4 及其 MEC 機型。ARM64 機型的版本資訊在[這裡](release-dpdk.md)。
 
+## GRISM-6.6.261124.8
+\- 新增功能 \-
+- 韌體更新可直接上傳含型號與版本的檔名(例如 grism-bin-T12S-MEC-6.6.261124.1.tgz),不必改名
+
+\- 問題修正 \-
+- 修正送出設定(reload)的瞬間若同時有過濾器查詢(管理介面的 bypass 過濾器、Studio 的過濾器計數頁),封包引擎可能停止運作的問題
+- 修正同時啟用兩個儲存裝置時,側錄到其中一個的檔案會寫入另一個的問題
+
+\- 項目變更 \-
+- nginx 更新至 1.30.7,修補 TLS 1.3 下讀取請求本文時可能無限迴圈的已知弱點
+
+\- MEC \-
+- MEC 分流模組:設定 → 模組 套用後,封包處理頁多出 MEC 分頁,以一張分流規則表產生整套 MEC 設定——每列是條件(UE 位址範圍、目的、cell、SPID,可多值)加動作(分流到邊緣 / 丟棄 / 送核心網 / 轉給目的 UE),由上往下第一個命中生效,其餘送核心網
+- 分流規則支援多個邊緣埠、閘道以 IP 或 MAC 指定、不限定 UE 範圍的開放式邊緣(以 SPID 或 cell 判定)、不代答 ARP 的邊緣主機,以及 UE 對 UE 不經邊緣直接互通
+- 邊緣側的 ARP 只在基地台側埠有連線時代答;套用前原有的手寫設定自動存為快照;可先預覽產生的 XML 與會變更的系統設定
+- cell 與 SPID 欄位提供裝置實際看到的值供點選
+- 5G UE 的 cell 改從所有帶位置資訊的 NGAP 訊息學習(InitialUEMessage、UplinkNASTransport、UEContextModificationResponse、LocationReport、RRCInactiveTransitionReport、PDUSessionResourceModify 的位置);4G 也從 UplinkNASTransport 學習,裝置啟用前就已附著的 UE 也能取得 cell
+- 修正 AMF 有兩個 N2 位址、上下行分別走不同位址時 cell 讀為 0 的問題:基地台改以自身位址為鍵(以實網捕捉驗證)
+
+
 ## GRISM-6.6.261111.1
 \- 新增功能 \-
 - 國別統計可只計遠端:為埠指定 WAN/LAN 端(設定 → 介面)或填入本地網段(設定 → 封包處理 → 連線追蹤)後,每條連線只歸在遠端那一端的國家,並分進向 / 出向與連線數;未設定時維持原本兩端各計一次的算法
