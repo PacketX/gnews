@@ -61,7 +61,7 @@ To its right is the **sync indicator**:
 
 **Undo / redo (↶ ↷)** — only in the Pipeline workspace. Each section (filters, inputs, outputs, actions, chains) keeps its own history.
 
-**The alerts bell** — the device's current alerts. With alerts open the bell shows their number; click it for the list and to acknowledge them (see the Alerts section in 5.3).
+**The alerts bell** — the device's current alerts. With alerts open the bell shows their number; click it for the list and to acknowledge them (see the Alerts section in 6.3).
 
 ![The alerts bell](img/manual/alerts-bell.png)
 
@@ -242,20 +242,131 @@ With it on, packets show on screen while the capture runs — list, decoded deta
 
 ### 3.7 Modules
 
-Settings has a **Modules** section, and the modules (MEC so far) are listed there from the start; nothing is added. A module is a feature described by a few fields, but none of them is filled in here: the card has two buttons. **Apply** (after a confirm) puts the module on the device, and the pipeline page gets the module's tab in front of its others; what the device forwards does not change until the fields are filled in and applied under the pipeline. **Release** (after a confirm too) takes the module off the device.
+Settings has a **Modules** section, and the modules (MEC so far) are listed there from the start; nothing is added. A module is a feature described by a few fields: the card has two buttons, **Apply** (after a confirm: the module is put on the device, the pipeline page gets its tab in front, what is forwarded does not change yet) and **Release** (after a confirm too: the module is taken off). The fields are filled in on the module's tab of the pipeline page, and applying there has the device write the filters, outputs and chains itself and put them in force -- **the first apply with the fields filled in replaces the device's whole packet-processing configuration (run.xml) with the module's**; what it replaced is kept as a pre-submit snapshot on the Export tab, to load back at any time; later applies rewrite the module's own part only. The MEC module, its fields and rule examples are chapter 4. Other modules (SD-WAN, mirror, inline) follow; a new module needs no Studio update.
 
-With a MEC module applied, the **Pipeline** gets a **MEC** tab in front; chains, filters, simulate, export and capture stay as they are, and the filters, outputs and chains the module made show up there (the Export tab has the whole XML). Every field of the module is set under **Pipeline → MEC**: the basic ports, UE addresses, breakout scope and edge gateway, and the advanced cell / UE / SPID rules (top to bottom, first match wins; break out to the edge, drop, or send to the core), other edges by UE range, SCTP reassembly, nrCellIdentityBits. **Apply** (after a confirm) has the device write the filters, outputs and chains itself and put them in force -- **the first apply with the fields filled in replaces the device's whole packet-processing configuration (run.xml) with the module's**; what it replaced is kept as a pre-submit snapshot on the Export tab, to load back at any time; later applies rewrite the module's own part only. Releasing the module is done under Settings → Modules; the MEC tab then goes and the editor stays as it was (with an empty configuration where the module had replaced it: load the original back from the snapshot).
-
-The modules so far:
-
-- **MEC breakout (4G/5G)**: the basic fields are the RAN-side port, the core-side port and one table, **UE addresses and their edge** -- each row a UE address range (the pool the core gives the UEs), the edge port those UEs leave by, the edge gateway, and optionally "destinations only"; one row is the usual case, and more rows send different UE ranges out of different edge ports (top to bottom, first match wins; each edge needs a port of its own and gets its own ARP answering and return path). Under the table, one choice of what breaks out -- by the table, or nothing by default (only what the advanced rules name); applying also switches on the settings MEC needs (S1AP/NGAP correlation, GTP inner parsing, the tunnel header in the flow, the UE port), and SCTP reassembly when a rule uses an SPID. The edge's ARP for a UE address is answered only while the RAN-side port has link (switchable under Advanced): with the RAN side down the UEs cannot be reached, and an unanswered ARP tells the edge server so. **A settings change takes a config-level account, reloads the engine's configuration and, on the ARM64 models, restarts the engine.** The cell value is the `cellid` of the MEC mapping table. A rule's **Edge** column names a row of the UE addresses table, or leaves it automatic by UE range.
-- Further modules (SD-WAN, mirror, inline) follow; a new module needs no Studio update.
-
-> 💡 Removing an instance takes out its filters, outputs and chains only; the settings it switched on stay as they are -- Settings is where to turn them off.
+> 💡 Releasing a module removes its filters, outputs and chains only; the settings it switched on stay as they are -- the Settings page is where to switch them off.
 
 ---
 
-## 4. Traffic
+## 4. MEC breakout
+
+Placed between the base stations (eNB / gNB) and the core (EPC / 5GC), GRISM can break selected UEs' traffic out to an edge server on the spot while everything else goes to the core as before. This chapter explains how it works, how the **MEC module** sets it up in minutes, and the usual rule patterns. The screens are GRISM Studio 2.303 on a T12S-MEC; the module needs firmware 6.6.261124 / 7.6.261124 or later.
+
+### 4.1 How it works
+
+- **Learning**: the device reads the S1AP (4G) / NGAP (5G) signalling between the base stations and the core and notes each UE's address, uplink and downlink GTP tunnels, cell and SPID in the **MEC mapping table** (Traffic → MEC). A UE's address is learned from its first uplink packet.
+- **Uplink**: UE traffic arriving on the RAN-side port inside GTP is handled by the rules -- **break out** (GTP removed, sent out of the edge port towards the edge gateway), **drop**, **to the core** (forwarded unchanged), or **UE to UE** (GTP removed and wrapped again into the destination UE's downlink tunnel, back out of the RAN-side port, never touching the edge). What matches no rule goes to the core.
+- **Downlink**: for a packet the edge server sends to a UE, the device answers the ARP on the UE's behalf (only while the RAN-side port has link), wraps the packet into that UE's downlink tunnel and sends it out of the RAN-side port; each edge port answers for, and accepts, the UE ranges that break out through it and no others.
+- **Cell and SPID**: a 4G cell value is the top 20 bits of the ECI (the eNB id); a 5G one is the top bits of the NR Cell Identity, how many being `nrCellIdentityBits` (26 by default). The value a rule takes is the `cellid` column of the MEC mapping table, and the table offers the values the device has actually seen. The SPID (SubscriberProfileIDforRFP) is only read whole with SCTP reassembly on, which the module switches on by itself when a rule uses an SPID.
+- Traffic from the core towards the base stations is forwarded unchanged.
+
+### 4.2 Setting it up with the module
+
+**Step 1: put the module on the device.** System → Settings → **Modules**, **Apply** on the "MEC breakout" card and confirm. Nothing the device forwards changes yet; the pipeline page merely gets a **MEC** tab in front. **Release** is on the same card.
+
+![Settings → Modules: the MEC module card, Apply and Release](img/manual/mec-set-modules.png)
+
+**Step 2: fill in the fields.** Pipeline → **MEC**. Before the first apply the form is empty and says so ("not configured yet"); nothing takes effect until Apply here.
+
+![Pipeline → MEC: the empty form; the fixed last row of the table is where unmatched traffic goes](img/manual/mec-tab-blank.png)
+
+- **RAN side port**: where S1/N2 signalling and the UEs' GTP arrive from the eNB/gNB. **Core side port**: towards the EPC/5GC; what is not broken out leaves here unchanged.
+- The **rules** table applies to the UEs' uplink traffic arriving on the RAN-side port, **top to bottom, first match wins**; a row's conditions are ANDed, several values in one cell are ORed; the fixed last row, "everything else → to the core", draws where unmatched traffic goes and cannot be changed.
+
+| Column | Meaning |
+|---|---|
+| UE addresses | the pool the core gives the UEs: a network (`10.45.0.0/16`), an address, or octet ranges such as `10.45.1-20.*`; one value per tag, several allowed |
+| Destinations | only traffic to these networks / addresses matches; empty = any destination |
+| Cells (advanced) | the UE's cell, several allowed; the values the device has seen are offered while typing |
+| SPID (advanced) | the UE's SubscriberProfileIDforRFP from the core (1–256), several allowed |
+| Action | break out / drop / to the core / UE to UE |
+| Edge port (LBO) | the port the traffic breaks out of; a break-out row only |
+| Edge gateway (IP or MAC) | the next hop on the edge side: an IP, whose MAC is learned by ARP, or the MAC itself when the gateway answers no ARP |
+| Edge-side hosts (advanced) | the edge side's own addresses (usually inside the UE range): no ARP answer for them |
+| Note | optional; names the generated filters |
+
+A break-out row may leave the UE addresses empty and go by cell or SPID alone (on a live network the UE pool is often unknown); such an edge is **open**: everything the edge sends that is not ARP is wrapped back into a tunnel. The **advanced columns** switch sits above the table on the right, and opens by itself, and stays open, while a row uses one of them; the **advanced settings** fold away under the form: "answer the edge's ARP for a UE only while the RAN-side port has link" (on by default), SCTP reassembly (sctpDataChunkReconstruct), 5G cell id bits (nrCellIdentityBits).
+
+![The advanced columns: cells, SPID and edge-side hosts; a row told by cell plus SPID, the gateway as an IP](img/manual/mec-form-advanced.png)
+
+**Step 3: preview.** **Preview XML** shows, before anything is applied, what the device would write -- the module's elements, the whole run.xml, and the settings that would be switched on with it; nothing on the device changes.
+
+![Preview XML: the filters, outputs and chains the module generates](img/manual/mec-preview.png)
+
+![Preview XML: the settings it would change](img/manual/mec-preview-settings.png)
+
+**Step 4: apply.** **Apply** and confirm. What to know:
+
+- **The first apply replaces the device's whole packet-processing configuration (run.xml) with the module's**; what it replaced is kept automatically as a pre-submit snapshot on the Export tab, to load back at any time. Later applies rewrite the module's own part only, and hand-written chains can live beside it.
+- The apply also switches on what MEC needs (S1AP/NGAP correlation, GTP inner inspection, the GTP tunnel header in the flow; SCTP reassembly when a rule uses an SPID; nrCellIdentityBits when given). **A settings change takes a config-level account**, reloads the engine's configuration and, on the ARM64 models, restarts the engine (about 5 s).
+- The module's filters, outputs and chains are visible (Pipeline → Editor → Chains / Filters / Export), ids from 8001 up, each element preceded by a `<!-- grism-module mec#1 -->` comment; **do not edit them by hand** -- the next apply rewrites them.
+
+![The confirm before an apply](img/manual/mec-apply-confirm.png)
+
+**Release**: System → Settings → Modules → Release. The module's elements go and the MEC tab with them; the settings it switched on stay; a hand-written configuration it had replaced is loaded back from the Export tab's snapshot.
+
+### 4.3 Rule examples
+
+**(a) One UE range to one edge server** -- the usual case, one row.
+
+| UE addresses | Destinations | Action | Edge port | Edge gateway |
+|---|---|---|---|---|
+| 10.45.0.0/16 | | break out | P7 | 10.45.255.254 |
+
+To break out only what goes to certain destinations (a server on the edge, say), name them under Destinations; the range's other traffic falls to the last row and goes to the core.
+
+**(b) UE to UE directly, the rest to the edge** -- HWACOM's MEC-G8S template.
+
+| # | UE addresses | Destinations | Action | Edge port | Edge gateway |
+|---|---|---|---|---|---|
+| 1 | 192.168.10.0/24 | 192.168.10.0/24 | UE to UE | | |
+| 2 | 192.168.10.0/24 | | break out | P3 | 192.168.10.254 |
+
+The gateway 192.168.10.254 lies inside the UE range; the module excludes it from row 1 by itself (a UE's traffic to the gateway still goes to the edge), nothing to write.
+
+**(c) Three UE ranges, each with its own edge, isolated from each other** -- HWACOM's HCP3B1EMEC template, three rows per range:
+
+| # | UE addresses | Destinations | Action | Edge port | Edge gateway |
+|---|---|---|---|---|---|
+| 1 | 10.87.250.0/24 | 10.87.250.0/24 | UE to UE | | |
+| 2 | 10.87.250.0/24 | 10.87.251.0/24, 10.87.252.0/24 | drop | | |
+| 3 | 10.87.250.0/24 | | break out | P3 | 10.87.250.252 |
+| 4–6 | 10.87.251.0/24 | the same three rows | | P2 | 10.87.251.252 |
+| 7–9 | 10.87.252.0/24 | the same three rows | | P1 | 10.87.252.252 |
+
+![Nine rows: each range's UE to UE, drop across ranges, break out to its own edge](img/manual/mec-form.png)
+
+Each edge port answers ARP for, and accepts, its own range's UEs only, so a host on one edge cannot reach another range's UEs either.
+
+**(d) By cell and SPID (a live network)** -- with the UE pool unknown, the cells (a plant, an office) and the SPID (a group of SIMs) tell the UEs apart, and the core's VoLTE addresses are kept out first:
+
+| # | UE addresses | Destinations | Cells | SPID | Action | Edge port | Edge gateway |
+|---|---|---|---|---|---|---|---|
+| 1 | | 172.23.63.132-136 | | | to the core | | |
+| 2 | | | 68403, 68401 | 150 | break out | P7 | 84:39:8f:f4:25:10 |
+
+Row 1 sends the VoLTE core addresses to the core first (an octet range in Destinations); row 2 is an open edge, no UE range, cell and SPID alone; the gateway answers no ARP, so its MAC is given.
+
+### 4.4 Checking it
+
+- **Traffic → MEC**: whether the UEs are learned, their cell values, tunnels and traffic; "clear" removes idle entries. The suggestions in the cells / SPID columns come from this table.
+- **Pipeline → Editor → Filters**: every generated filter has a match counter, so which row matches is plain to see; **Simulate** walks a packet through the chains.
+- **Alerts**: the MEC table's fill over its threshold (95% by default) raises an alert (System → Settings → Alerts).
+- **System log**: a syslog target of type `mec` under Logging, with `s1apItemsUpdateLog` on, sends every creation, update and release of a table entry -- for tracking a problem down.
+
+### 4.5 Details and limits
+
+- One MEC instance per device is enough: two sets of rules on the same RAN-side port would send unmatched traffic to the core twice.
+- The edge's ARP for a UE is answered only while the RAN-side port has link (advanced setting, on by default): with the RAN side down no ARP is answered, which tells the edge server the UEs cannot be reached.
+- "UE to UE" works for UEs the table knows, their address learned; a break-out gateway inside the destination range is excluded by itself. A gateway given as a MAC has no IP to exclude, so an edge-side host inside the UE range wants a row above it, "destination = that host → break out".
+- The module handles IPv4 UE addresses; IPv6 UE traffic is not broken out.
+- Do not mix 4G and 5G on one device (NSA is S1AP and counts as 4G); their cell values differ in width.
+- The old way (the template on the Settings → Packet processing → MEC card, ports and addresses edited by hand) still works, but a hand-written configuration and the module should not both manage one RAN-side port.
+- By the web API: `get_modules`, `get_module_instances`, `preview_module`, `apply_module`, `remove_module`, see [The web API: the calls and how to use them](tech-web-api.md).
+
+---
+
+## 5. Traffic
 
 Needs a session. Every tab has an auto-refresh interval (10 s by default).
 
@@ -276,9 +387,9 @@ Needs a session. Every tab has an auto-refresh interval (10 s by default).
 
 ---
 
-## 5. System
+## 6. System
 
-### 5.1 System status
+### 6.1 System status
 
 ![System status](img/manual/status.png)
 
@@ -286,7 +397,7 @@ Model, version, serial, machine id, host name, uptime, device time, load average
 
 The **memory card** separates what is **pinned at boot** — DPDK hugepages and the flow table — and computes the usage from what remains, so the percentage means something.
 
-### 5.2 System log
+### 6.2 System log
 
 ![System log](img/manual/syslog.png)
 
@@ -294,7 +405,7 @@ The device's log. "Auto-scroll" follows the newest lines.
 
 Past 10 MB the device rotates the log to `log.txt.1`, older ones on to `.4`. When older files exist a file list appears beside the title to view any of them; "download all (zip)" packs the current and every older file into one zip. "Clear" deletes all of them, rotated ones included; only an administrator can, and the device records who did.
 
-### 5.3 Settings
+### 6.3 Settings
 
 The settings page has several sections (switched at the top); models differ a little in which they show:
 
@@ -338,7 +449,7 @@ The device checks every 10 seconds whether or not anyone has the page open. Rule
 
 > ⚠️ **Switch interfaces**: every write restarts the switch service, during which **every port is down for about 20 seconds**. If the service stops on its own you see sixteen dark ports with the packet engine itself fine — the same card's restart brings it back.
 
-### 5.4 Crash debugging
+### 6.4 Crash debugging
 
 Where: Settings → Services → Crash debugging
 
@@ -366,7 +477,7 @@ Above the list is a `MANIFEST.txt` link recording which firmware the dumps belon
 
 ---
 
-## 6. Common workflows
+## 7. Common workflows
 
 ### Add a forwarding rule
 
@@ -394,10 +505,11 @@ Above the list is a `MANIFEST.txt` link recording which firmware the dumps belon
 
 ### Set up MEC breakout
 
-1. Settings → **Modules** → the "MEC breakout" card → Apply → confirm (the module is put on the device; the pipeline page gets a MEC tab)
-1. Pipeline → **MEC**: the RAN-side and core-side ports, and in the table the UE addresses, edge port and edge gateway (more rows for more edges) → Apply → confirm (replaces the packet-processing configuration and switches on the settings MEC needs)
-2. Traffic → **MEC mapping table**: confirm the UEs are learned and their cell values
-3. To break out by cell, Pipeline → **MEC** → the rules table: the cell values (and UE, SPID, destinations) → Apply
+Chapter 4 has the whole story. In short:
+
+1. System → Settings → **Modules** → the "MEC breakout" card → Apply → confirm (the module is put on the device; the pipeline page gets a MEC tab)
+2. Pipeline → **MEC**: the RAN-side and core-side ports, and in the rules table the UE addresses, action, edge port and edge gateway (open the advanced columns to go by cell / SPID) → Preview XML → Apply → confirm (replaces the packet-processing configuration and switches on the settings MEC needs)
+3. Traffic → **MEC**: confirm the UEs are learned and their cell values; Pipeline → Editor → Filters for each row's match count
 
 (The old way still works: switch the feature on in the Settings MEC card and take the card's template into the editor by hand.)
 
@@ -411,7 +523,7 @@ Above the list is a `MANIFEST.txt` link recording which firmware the dumps belon
 
 ---
 
-## 7. Troubleshooting
+## 8. Troubleshooting
 
 | Symptom | Cause and remedy |
 |---|---|
