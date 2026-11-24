@@ -243,9 +243,9 @@ for port in g.get_json("/grism/task/get_statistics_json")["statistics"]:
 |---|---|---|---|---|
 | `/grism/task/update` | POST | 管理 | multipart `file`=`grism-bin.tgz`(或 `grism-bin-<型號>[-<版本>].tgz`) | 上傳韌體並開始更新;設定會沿用 |
 | `/grism/task/update_check` | GET | 設定 | — | 向更新伺服器查詢有無新版 |
-| `/grism/task/update_download` | GET | 管理 | `version` | 讓設備自行下載指定版本 |
-| `/grism/task/update_download_check` | GET | 檢視 | — | 純文字 `已下載,總大小`(位元組) |
-| `/grism/task/update_download_update` | GET | 管理 | — | 套用已下載的韌體 |
+| `/grism/task/update_download` | GET | 管理 | `version`, `tok`(選填) | 讓設備自行下載指定版本;回應在下載完成後才回來。`tok` 是呼叫端為這次下載取的名字(任意字串),之後的進度查詢帶同一個值。開始時會先清掉上一次下載留下的映像檔。沒有這個型號的版本回 404,下載失敗回 500 並附原因(pywww 1.50.25 / 1.48.25 起) |
+| `/grism/task/update_download_check` | GET | 檢視 | `tok`(選填) | 純文字 `已下載,總大小`(位元組)。帶了 `tok` 而設備沒看過這個值(下載尚未開始)回 `0,0`,所以在 `update_download` 之前送出的查詢不會把上一次下載完成的檔案當成這一次的;傳輸中回報正在寫入的檔案大小,兩數相等才算完成 |
+| `/grism/task/update_download_update` | GET | 管理 | — | 套用已下載的韌體。下載還在進行、沒有映像檔、或映像檔大小與總大小不符時回 409 並附原因,不會寫入觸發檔 |
 | `/grism/task/upload_component` | POST | 管理 | 表單 `target`(`grism-studio` 或 `pywww`);multipart `file` | 只更換單一元件 |
 | `/grism/task/backup` | POST | 管理 | — | 產生備份 |
 | `/grism/task/download_backup` | GET | 管理 | — | 下載剛產生的備份檔 |

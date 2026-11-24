@@ -243,9 +243,9 @@ A **module** is a feature described by a few fields: the device renders the filt
 |---|---|---|---|---|
 | `/grism/task/update` | POST | admin | multipart `file`=`grism-bin.tgz` (or `grism-bin-<model>[-<version>].tgz`) | upload a firmware image and start the update; settings are carried over |
 | `/grism/task/update_check` | GET | config | — | ask the update server whether there is a newer version |
-| `/grism/task/update_download` | GET | admin | `version` | have the device fetch that version itself |
-| `/grism/task/update_download_check` | GET | view | — | text `downloaded,total` (bytes) |
-| `/grism/task/update_download_update` | GET | admin | — | apply the downloaded image |
+| `/grism/task/update_download` | GET | admin | `version`, `tok` (optional) | have the device fetch that version itself; the answer comes back when the download is done. `tok` is any string the caller names this download by, and the progress checks carry the same value. What a previous download left is removed first. 404 when the release holds nothing for this model, 500 with the reason when the download fails (pywww 1.50.25 / 1.48.25) |
+| `/grism/task/update_download_check` | GET | view | `tok` (optional) | text `downloaded,total` (bytes). With a `tok` the device has not seen (the download not started yet) it answers `0,0`, so a check sent before its `update_download` cannot read a previous download's finished image as this one's; during the transfer it reports the file being written, and the download is complete only when the two numbers agree |
+| `/grism/task/update_download_update` | GET | admin | — | apply the downloaded image. 409 with the reason, and no trigger written, while the download still runs, when there is no image, or when its size is short of the total |
 | `/grism/task/upload_component` | POST | admin | form `target` (`grism-studio` or `pywww`); multipart `file` | replace one component only |
 | `/grism/task/backup` | POST | admin | — | make a backup |
 | `/grism/task/download_backup` | GET | admin | — | download the backup just made |
