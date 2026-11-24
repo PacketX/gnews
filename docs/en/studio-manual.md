@@ -15,7 +15,7 @@ The screens in this manual are GRISM Studio 2.260 on a G8S-MEC; other models dif
 
 Account menu (top right) → **login**, then the device's username and password.
 
-![Account menu: who is signed in, language, appearance, the Studio version](img/manual/account-menu.png)
+![Account menu: who is signed in, language, appearance, the Studio version](../img/manual/account-menu.png)
 
 **You can look around without signing in**: Studio loads a template so you can learn the interface and try editing. These actions need a session:
 
@@ -63,7 +63,7 @@ To its right is the **sync indicator**:
 
 **The alerts bell** — the device's current alerts. With alerts open the bell shows their number; click it for the list and to acknowledge them (see the Alerts section in 6.3).
 
-![The alerts bell](img/manual/alerts-bell.png)
+![The alerts bell](../img/manual/alerts-bell.png)
 
 **Account menu** — sign in / out, language (中文 / English), appearance (light / dark), and the Studio version at the bottom.
 
@@ -83,7 +83,7 @@ The toolbar names the source of the current configuration:
 
 Once a configuration is loaded, this page says in plain words what it does: how many filters and chains, which ports, and **what it looks like**.
 
-![Overview: the inferred purpose and the filter list](img/manual/overview.png)
+![Overview: the inferred purpose and the filter list](../img/manual/overview.png)
 
 The inferred purpose is read from the configuration's structure, and its first line names the device's role — MEC breakout (which port strips GTP, which edge host it goes to, which port wraps it again, whether a cell decides), or an SD-WAN tunnel (L2GRE / VXLAN, which ports, the tunnel's VLAN, single-armed or not, linkdown failover) — followed by structural observations such as bidirectional forwarding, load balancing or drops. It is an inference; the chains and filters listed below it are exact.
 
@@ -107,7 +107,7 @@ filters (match conditions)  →  chains (decide where)  →  outputs (which port
 
 The canvas in the middle draws one chain as a flow. The chain list is on the left (drag to reorder); the editor column on the right.
 
-![Chains: the list, the canvas, the editor column](img/manual/chain.png)
+![Chains: the list, the canvas, the editor column](../img/manual/chain.png)
 
 **Node types**:
 
@@ -134,7 +134,7 @@ The canvas in the middle draws one chain as a flow. The chain list is on the lef
 
 Pick a filter on the left, edit its conditions on the right.
 
-![Filters](img/manual/filters.png)
+![Filters](../img/manual/filters.png)
 
 Conditions form a tree: `and` (all), `or` (any), `not`. Each condition is a field, a relation and a value, such as "`vlan.id` == `921`".
 
@@ -167,7 +167,7 @@ Replay pacing is one of three, the first that is set winning: a fixed interval (
 
 See where a packet goes before touching the device.
 
-![Simulate: the device's ports above, the ingress port and each filter's verdict on the left](img/manual/simulate.png)
+![Simulate: the device's ports above, the ingress port and each filter's verdict on the left](../img/manual/simulate.png)
 
 1. Pick an **ingress port**
 2. Set each filter to "match" or "no match" (or all at once)
@@ -185,7 +185,7 @@ Filters and outputs show their details on hover here too.
 
 This page shows the complete configuration XML, and is where it is submitted.
 
-![Export: the XML on the left; validation, saved configurations and previous versions on the right](img/manual/export.png)
+![Export: the XML on the left; validation, saved configurations and previous versions on the right](../img/manual/export.png)
 
 **Changes (diff)** — whenever the configuration differs from what was loaded, the whole file's diff is shown, added and removed lines in colour. Click the change count to **jump block by block** ("+" to the next addition, "−" to the next removal).
 
@@ -205,7 +205,7 @@ This page shows the complete configuration XML, and is where it is submitted.
 
 Record traffic to a pcap file and download it.
 
-![Packet capture](img/manual/capture.png)
+![Packet capture](../img/manual/capture.png)
 
 **Steps**:
 
@@ -264,11 +264,11 @@ Placed between the base stations (eNB / gNB) and the core (EPC / 5GC), GRISM can
 
 **Step 1: put the module on the device.** System → Settings → **Modules**, **Apply** on the "MEC breakout" card and confirm. Nothing the device forwards changes yet; the pipeline page merely gets a **MEC** tab in front. **Release** is on the same card.
 
-![Settings → Modules: the MEC module card, Apply and Release](img/manual/mec-set-modules.png)
+![Settings → Modules: the MEC module card, Apply and Release](../img/manual/mec-set-modules.png)
 
 **Step 2: fill in the fields.** Pipeline → **MEC**. Before the first apply the form is empty and says so ("not configured yet"); nothing takes effect until Apply here.
 
-![Pipeline → MEC: the empty form; the fixed last row of the table is where unmatched traffic goes](img/manual/mec-tab-blank.png)
+![Pipeline → MEC: the empty form; the fixed last row of the table is where unmatched traffic goes](../img/manual/mec-tab-blank.png)
 
 - **RAN side port**: where S1/N2 signalling and the UEs' GTP arrive from the eNB/gNB. **Core side port**: towards the EPC/5GC; what is not broken out leaves here unchanged.
 - The **rules** table applies to the UEs' uplink traffic arriving on the RAN-side port, **top to bottom, first match wins**; a row's conditions are ANDed, several values in one cell are ORed; the fixed last row, "everything else → to the core", draws where unmatched traffic goes and cannot be changed.
@@ -287,13 +287,13 @@ Placed between the base stations (eNB / gNB) and the core (EPC / 5GC), GRISM can
 
 A break-out row may leave the UE addresses empty and go by cell or SPID alone (on a live network the UE pool is often unknown); such an edge is **open**: everything the edge sends that is not ARP is wrapped back into a tunnel. The **advanced columns** switch sits above the table on the right, and opens by itself, and stays open, while a row uses one of them; the **advanced settings** fold away under the form: "answer the edge's ARP for a UE only while the RAN-side port has link" (on by default), SCTP reassembly (sctpDataChunkReconstruct), 5G cell id bits (nrCellIdentityBits).
 
-![The advanced columns: cells, SPID and edge-side hosts; a row told by cell plus SPID, the gateway as an IP](img/manual/mec-form-advanced.png)
+![The advanced columns: cells, SPID and edge-side hosts; a row told by cell plus SPID, the gateway as an IP](../img/manual/mec-form-advanced.png)
 
 **Step 3: preview.** **Preview XML** shows, before anything is applied, what the device would write -- the module's elements, the whole run.xml, and the settings that would be switched on with it; nothing on the device changes.
 
-![Preview XML: the filters, outputs and chains the module generates](img/manual/mec-preview.png)
+![Preview XML: the filters, outputs and chains the module generates](../img/manual/mec-preview.png)
 
-![Preview XML: the settings it would change](img/manual/mec-preview-settings.png)
+![Preview XML: the settings it would change](../img/manual/mec-preview-settings.png)
 
 **Step 4: apply.** **Apply** and confirm. What to know:
 
@@ -301,7 +301,7 @@ A break-out row may leave the UE addresses empty and go by cell or SPID alone (o
 - The apply also switches on what MEC needs (S1AP/NGAP correlation, GTP inner inspection, the GTP tunnel header in the flow; SCTP reassembly when a rule uses an SPID; nrCellIdentityBits when given). **A settings change takes a config-level account**, reloads the engine's configuration and, on the ARM64 models, restarts the engine (about 5 s).
 - The module's filters, outputs and chains are visible (Pipeline → Editor → Chains / Filters / Export), ids from 8001 up, each element preceded by a `<!-- grism-module mec#1 -->` comment; **do not edit them by hand** -- the next apply rewrites them.
 
-![The confirm before an apply](img/manual/mec-apply-confirm.png)
+![The confirm before an apply](../img/manual/mec-apply-confirm.png)
 
 **Release**: System → Settings → Modules → Release. The module's elements go and the MEC tab with them; the settings it switched on stay; a hand-written configuration it had replaced is loaded back from the Export tab's snapshot.
 
@@ -334,7 +334,7 @@ The gateway 192.168.10.254 lies inside the UE range; the module excludes it from
 | 4–6 | 10.87.251.0/24 | the same three rows | | P2 | 10.87.251.252 |
 | 7–9 | 10.87.252.0/24 | the same three rows | | P1 | 10.87.252.252 |
 
-![Nine rows: each range's UE to UE, drop across ranges, break out to its own edge](img/manual/mec-form.png)
+![Nine rows: each range's UE to UE, drop across ranges, break out to its own edge](../img/manual/mec-form.png)
 
 Each edge port answers ARP for, and accepts, its own range's UEs only, so a host on one edge cannot reach another range's UEs either.
 
@@ -370,7 +370,7 @@ Row 1 sends the VoLTE core addresses to the core first (an octet range in Destin
 
 Needs a session. Every tab has an auto-refresh interval (10 s by default).
 
-![Traffic: interfaces](img/manual/traffic-ports.png)
+![Traffic: interfaces](../img/manual/traffic-ports.png)
 
 | Tab | Content |
 |---|---|
@@ -381,7 +381,7 @@ Needs a session. Every tab has an auto-refresh interval (10 s by default).
 | **L2GRE mapping** | only with L2GRE mapping enabled |
 | **MEC mapping table** | only with S1AP/NGAP correlation enabled: each UE's address, base station, cell, uplink and downlink tunnels and traffic; sortable by column, filterable by address or idle time |
 
-![Traffic: the MEC mapping table](img/manual/traffic-mec.png)
+![Traffic: the MEC mapping table](../img/manual/traffic-mec.png)
 
 **Clear counters** — resets the statistics; traffic is unaffected. The MEC table has its own "clear", which removes entries idle longer than a given number of seconds.
 
@@ -391,7 +391,7 @@ Needs a session. Every tab has an auto-refresh interval (10 s by default).
 
 ### 6.1 System status
 
-![System status](img/manual/status.png)
+![System status](../img/manual/status.png)
 
 Model, version, serial, machine id, host name, uptime, device time, load average; a **current settings** card with the management IP, NTP, timezone, the packet-processing features and services in use; then CPU (per core), memory, disks, temperatures, fans and power. Open alerts are listed on this page too.
 
@@ -399,7 +399,7 @@ The **memory card** separates what is **pinned at boot** — DPDK hugepages and 
 
 ### 6.2 System log
 
-![System log](img/manual/syslog.png)
+![System log](../img/manual/syslog.png)
 
 The device's log. "Auto-scroll" follows the newest lines.
 
@@ -409,7 +409,7 @@ Past 10 MB the device rotates the log to `log.txt.1`, older ones on to `.4`. Whe
 
 The settings page has several sections (switched at the top); models differ a little in which they show:
 
-![Settings: the packet processing section](img/manual/set-packet.png)
+![Settings: the packet processing section](../img/manual/set-packet.png)
 
 | Section | Content |
 |---|---|
@@ -429,7 +429,7 @@ Each section is written to the device only after "apply" and a confirmation.
 
 **Login authentication**
 
-![Settings: login authentication](img/manual/set-auth.png)
+![Settings: login authentication](../img/manual/set-auth.png)
 
 The local accounts table lists every account with its level; add, delete or re-level them (except the last administrator). With RADIUS or TACACS+ on, sign-ins go to the server; the addresses or networks under "Allow Local Login Hosts" still sign in with local accounts and never ask the server — leave one for the management network, so a dead server does not lock you out.
 
@@ -439,13 +439,13 @@ Switches on the three features MEC breakout needs together (S1AP/NGAP correlatio
 
 **Alerts**
 
-![Settings: alerts](img/manual/set-alerts.png)
+![Settings: alerts](../img/manual/set-alerts.png)
 
 The device checks every 10 seconds whether or not anyone has the page open. Rules: CPU (packet engine excluded), memory, disks, temperature, fan failure, packet-engine zombie processes, a service not running, input drops, MEC table fill, a filter list not applied, receive queue full (a packet core found a port's receive queue over three quarters full: the core is behind, and the NIC drops frames it does not count; arm64 models, `inQueueFull` in `get_statistics_json`); each has a threshold, a clear threshold and a hold time. Raising and clearing are written to the system log and sent as SNMPv2c traps to the "SNMP trap targets" (several allowed; "send a test trap" checks the receiver at once); syslog goes out through "Logging". The boot, shutdown and power notifications come from the `packetx_trap_dispatcher` service, enabled under Services.
 
 **Services**
 
-![Settings: services](img/manual/set-services.png)
+![Settings: services](../img/manual/set-services.png)
 
 > ⚠️ **Switch interfaces**: every write restarts the switch service, during which **every port is down for about 20 seconds**. If the service stops on its own you see sixteen dark ports with the packet engine itself fine — the same card's restart brings it back.
 
