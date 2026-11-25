@@ -2,6 +2,14 @@
 
 The ARM64 models: Q16, F3T1G4, T4G12, H2. The MIPS64 models' notes are [here](/en/release-mips.md).
 
+## GRISM-7.6.261125.1
+\- bug fixed \-
+- fix the online update: the install could be started before the download was complete (and then did nothing), and a first download could be reported as making no progress
+
+\- MEC \-
+- MEC breakout module: with several edge ports, each edge port accepts the downlink of its own UE ranges only
+
+
 ## GRISM-7.6.261124.6
 \- function added \-
 - a firmware update accepts an upload named with the model and version (grism-bin-T12S-MEC-6.6.261124.1.tgz), no renaming needed

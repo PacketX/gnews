@@ -2,6 +2,14 @@
 
 The MIPS64 models: G8S, G8, T12S, T20, F2T12, F4T4 and their MEC variants. The ARM64 models' notes are [here](/en/release-dpdk.md).
 
+## GRISM-6.6.261125.1
+\- bug fixed \-
+- fix the online update: the install could be started before the download was complete (and then did nothing), and a first download could be reported as making no progress
+
+\- MEC \-
+- MEC breakout module: with several edge ports, each edge port accepts the downlink of its own UE ranges only
+
+
 ## GRISM-6.6.261124.8
 \- function added \-
 - a firmware update accepts an upload named with the model and version (grism-bin-T12S-MEC-6.6.261124.1.tgz), no renaming needed
