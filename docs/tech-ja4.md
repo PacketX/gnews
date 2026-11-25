@@ -71,6 +71,39 @@ GRISM 的做法(設定 `quicInitialReassemble`,預設關,和其他重組開關�
 
 驗證同樣靠一份獨立實作:`tools/test/quic_ja4.py` 用 Python `cryptography` 解密 pcap 裡每個連線的 Initial、重組、算 JA4,也能輸出逐步的 test vector(金鑰、每個 datagram 的明文與 frame)。`quic_initial_test.c` 在主機上跑這些 vector 加上 RFC 9001/9369 附錄的樣本與 FIPS/HKDF 的公開向量。設備上:Q16 重播 89 個 Firefox 與 25 個 Chrome 連線,JA4 與 oracle 100% 相同;G8S 的值也全部正確,但經 LOOP 埠重播會掉幾個百分比的 hello — 同一連線的 Initial 要在同一核心集合,MIPS 機種靠把 QUIC long header 像 TCP segment 一樣 deschedule 到該流的核心做到這點,而 LOOP 埠做不到;實體埠沒有這個問題。
 
+## 量測過的瀏覽器指紋
+
+同一個瀏覽器在不同情況下會給不同的 JA4:新連線與 resumption 不同、HTTP/1.1 與 HTTP/2 不同、QUIC 與 TCP 不同。所以用 JA4 篩某個瀏覽器,要把整組列進同一個過濾器,而不是只放一個值。下面是 2026-11-25 在實驗室用瀏覽器實際跑出來、再用 GRISM 驗過的值:
+
+| 瀏覽器 | 情況 | JA4 |
+|---|---|---|
+| Chrome | TCP,新連線 | `t13d1517h2_8daaf6152771_cb7bf5808d99` |
+| Chrome | TCP,HelloRetryRequest 之後 | `t13d1518h2_8daaf6152771_6ba8dc3d6269` |
+| Chrome | TCP,resumption | `t13d1518h2_8daaf6152771_e2d80978ab2e` |
+| Chrome | HTTP/1.1,新連線 | `t13d1516h1_8daaf6152771_5b37b36a67c0` |
+| Chrome | HTTP/1.1,resumption | `t13d1517h1_8daaf6152771_c4a234726a38` |
+| Chrome | QUIC,新連線 | `q13d0312h3_55b375c5d22e_178839b6cec1` |
+| Chrome | QUIC,resumption | `q13d0314h3_55b375c5d22e_79cc91d6b50c` |
+| Edge | TCP,新連線 | `t13d1516h2_8daaf6152771_806a8c22fdea` |
+| Edge | TCP,resumption | `t13d1517h2_8daaf6152771_a87ad97598a9` |
+| Edge | HTTP/1.1 | `t13d1515h1_8daaf6152771_e4c2b8c727f2` |
+| Edge | QUIC | `q13d0311h3_55b375c5d22e_653d80c3fe9d` |
+| Firefox | TCP,新連線 | `t13d1517h2_8daaf6152771_3cbfd9057e0d` |
+| Firefox | TCP,resumption | `t13d1517h2_8daaf6152771_e6dcd7ae0a9e` |
+| Firefox | TCP,未帶 compress_certificate | `t13d1516h2_8daaf6152771_0c27189014cf` |
+| Firefox | TCP,未帶 compress_certificate | `t13d1516h2_8daaf6152771_e6d2851837fd` |
+| Firefox | HTTP/1.1 | `t13d1516h1_8daaf6152771_e6d2851837fd` |
+| Firefox | TCP,0-RTT resumption | `t13d1518h2_8daaf6152771_e7cacf613b58` |
+| Firefox | 只走 TLS 1.2 | `t12d1211h2_d34a8e72043a_810e2f290f6f` |
+| Firefox | QUIC | `q13d0315h3_55b375c5d22e_dc5437974b47` |
+
+兩件值得注意的事:
+
+- **不能只看 cipher 那段(`ja4_b`)分辨瀏覽器。** Firefox 走 TCP 時提的 15 個 cipher 和 Chromium 完全一樣(`8daaf6152771`),差別只在擴充那段(`ja4_c`)。只有 Firefox 的 TLS 1.2 連線(`d34a8e72043a`)與 QUIC(所有瀏覽器都是 `55b375c5d22e`)是另外的值。
+- **Edge 是 Chromium,但少了 Chrome 的一個擴充(0xca34)**,所以擴充數與 `ja4_c` 和 Chrome 不同 — 兩者可以分開。
+
+版本更新會改變這些值(擴充順序、後量子金鑰交換的開關都會),所以把它當成某一天某個版本的量測,而不是永久清單;自己的環境請用 `tools/test/ja4.py` 或設備的 DPI SSL syslog 重新量一次。GRISM Manager 的 syslog 分析外掛內建這一組,頁面上會標示為「PacketX 量測」。
+
 ## 工具一覽
 
 | 工具 | 用途 |

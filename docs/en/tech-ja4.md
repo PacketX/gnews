@@ -71,6 +71,39 @@ The same Chrome over TCP is `t13d1517h2_8daaf6152771_cb7bf5808d99`: protocol, ci
 
 Checking it again rests on an independent implementation: `tools/test/quic_ja4.py` decrypts every connection's Initials in a pcap with Python's `cryptography`, reassembles, computes the JA4, and can emit step-by-step test vectors (keys, each datagram's plaintext and frames). `quic_initial_test.c` runs those on the build host together with the sample packets of RFC 9001/9369 and the published FIPS/HKDF vectors. On the devices: a Q16 replaying 89 Firefox and 25 Chrome connections matched the oracle 100%; a G8S gets every value right too, but a replay through a LOOP port loses a few percent of hellos -- a connection's Initials have to meet on one core, which the MIPS models arrange by descheduling a QUIC long header to the flow's core as they do a TCP segment, and a LOOP port cannot; real ports have no such loss.
 
+## The browser fingerprints we measured
+
+One browser gives different JA4s in different circumstances: a new connection and a resumption differ, HTTP/1.1 and HTTP/2 differ, QUIC and TCP differ. So a filter for a browser needs the whole set, not one value. These were measured here on 2026-11-25, by driving the browsers through each case and reading the answers back from GRISM:
+
+| Browser | Case | JA4 |
+|---|---|---|
+| Chrome | TCP, new connection | `t13d1517h2_8daaf6152771_cb7bf5808d99` |
+| Chrome | TCP, after a HelloRetryRequest | `t13d1518h2_8daaf6152771_6ba8dc3d6269` |
+| Chrome | TCP, resumption | `t13d1518h2_8daaf6152771_e2d80978ab2e` |
+| Chrome | HTTP/1.1, new connection | `t13d1516h1_8daaf6152771_5b37b36a67c0` |
+| Chrome | HTTP/1.1, resumption | `t13d1517h1_8daaf6152771_c4a234726a38` |
+| Chrome | QUIC, new connection | `q13d0312h3_55b375c5d22e_178839b6cec1` |
+| Chrome | QUIC, resumption | `q13d0314h3_55b375c5d22e_79cc91d6b50c` |
+| Edge | TCP, new connection | `t13d1516h2_8daaf6152771_806a8c22fdea` |
+| Edge | TCP, resumption | `t13d1517h2_8daaf6152771_a87ad97598a9` |
+| Edge | HTTP/1.1 | `t13d1515h1_8daaf6152771_e4c2b8c727f2` |
+| Edge | QUIC | `q13d0311h3_55b375c5d22e_653d80c3fe9d` |
+| Firefox | TCP, new connection | `t13d1517h2_8daaf6152771_3cbfd9057e0d` |
+| Firefox | TCP, resumption | `t13d1517h2_8daaf6152771_e6dcd7ae0a9e` |
+| Firefox | TCP, without compress_certificate | `t13d1516h2_8daaf6152771_0c27189014cf` |
+| Firefox | TCP, without compress_certificate | `t13d1516h2_8daaf6152771_e6d2851837fd` |
+| Firefox | HTTP/1.1 | `t13d1516h1_8daaf6152771_e6d2851837fd` |
+| Firefox | TCP, 0-RTT resumption | `t13d1518h2_8daaf6152771_e7cacf613b58` |
+| Firefox | TLS 1.2 only | `t12d1211h2_d34a8e72043a_810e2f290f6f` |
+| Firefox | QUIC | `q13d0315h3_55b375c5d22e_dc5437974b47` |
+
+Two things worth knowing:
+
+- **The cipher part (`ja4_b`) does not tell the browsers apart.** Firefox offers the same 15 ciphers over TCP as Chromium does (`8daaf6152771`); only the extension part (`ja4_c`) differs. Firefox's TLS 1.2 connections (`d34a8e72043a`) and QUIC (`55b375c5d22e` for every browser) are the exceptions.
+- **Edge is Chromium without one of Chrome's extensions (0xca34)**, so its extension count and `ja4_c` differ from Chrome's and the two can be separated.
+
+A browser update changes these values (the order of extensions, or a post-quantum key exchange being switched on, is enough), so treat them as one day's measurement of one version rather than a permanent list, and measure your own with `tools/test/ja4.py` or the device's DPI SSL syslog. GRISM Manager's syslog analysis plugin carries this set and marks it "PacketX measured" on the page.
+
 ## The tools
 
 | Tool | Use |
