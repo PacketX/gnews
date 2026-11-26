@@ -223,6 +223,7 @@ Calls made for programs rather than people: tokens, validation before a submit, 
 | `/grism/task/confirm_submit` | POST | operator | — | keeps the submit |
 | `/grism/task/rollback_submit` | POST | operator | — | goes back to the previous file now |
 | `/grism/task/get_capabilities` | GET | view | — | what this device is and can do: model, firmware and engine versions, product line, ports (LOOP marked), management addresses, storages, the filter fields it accepts, table sizes and feature flags, memory, bypass pairs, the core count and how many inputs may take one (`cores`), and a map of the automation calls |
+| `/grism/task/get_port_mode` | GET | view | — | on a model whose cage can be split (the HL1): the QSFP56 cage's port mode (`mode` 1x100G / 2x50G / 4x25G / 4x10G …, each lane's protocol, speed, lane count and FEC), read from the boot firmware's saved settings; other models answer `supported: false`. Read-only: the change is still made in the boot firmware's console menu |
 | `/grism/task/get_events` | GET | view | `since` (event id), `kinds` (alert,config,engine,auth), `limit` | the last 500 events; those after `since`, polled with the answer's `last_id` |
 | `/grism/task/get_webhooks` | GET | config | — | the webhook targets (secrets shown as `********`) |
 | `/grism/task/set_webhooks` | POST JSON | config | `webhooks`: `[{name, url, secret, events, enable}]`, up to 8 | the whole list at once; a `secret` of `********` keeps the stored one; an empty `events` means every kind |

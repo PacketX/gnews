@@ -223,6 +223,7 @@ for port in g.get_json("/grism/task/get_statistics_json")["statistics"]:
 | `/grism/task/confirm_submit` | POST | 操作 | — | 確認保留這次提交 |
 | `/grism/task/rollback_submit` | POST | 操作 | — | 立即換回前一版 |
 | `/grism/task/get_capabilities` | GET | 檢視 | — | 這台裝置是什麼、能做什麼:機型、韌體與引擎版本、產品線、各埠(含 LOOP)、管理位址、儲存空間、可用的篩選欄位、各表大小與功能開關、記憶體、bypass 配對、核心數與可佔用核心的輸入上限(`cores`)、以及自動化呼叫的對照表 |
+| `/grism/task/get_port_mode` | GET | 檢視 | — | HL1 這類可拆分 cage 的機種:QSFP56 cage 目前的埠模式(`mode` 1x100G / 2x50G / 4x25G / 4x10G …、每條 lane 的協定、速度、lane 數與 FEC),讀自開機韌體存下的設定;其他機種回 `supported: false`。唯讀——變更目前仍由 console 的開機韌體選單進行 |
 | `/grism/task/get_events` | GET | 檢視 | `since`(事件 id)、`kinds`(alert,config,engine,auth)、`limit` | 最近 500 筆事件;`since` 之後的,搭配回應的 `last_id` 輪詢 |
 | `/grism/task/get_webhooks` | GET | 設定 | — | Webhook 目標清單(密鑰以 `********` 代替) |
 | `/grism/task/set_webhooks` | POST JSON | 設定 | `webhooks`:`[{name, url, secret, events, enable}]`,最多 8 個 | 整份清單一次寫入;`secret` 送 `********` 表示保留原值;`events` 留空 = 全部種類 |
